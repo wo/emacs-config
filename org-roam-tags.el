@@ -1,5 +1,7 @@
 ;;; ~/.doom.d/org-roam-tags.el -*- lexical-binding: t; -*-
 
+; From https://gist.github.com/d12frosted/4a55f3d072a813159c1d7b31c21bac9a
+
 (defun +org-roam-tags-read ()
   "Return list of tags as set in the buffer."
   (org-roam--extract-tags-prop (buffer-file-name (buffer-base-buffer))))
