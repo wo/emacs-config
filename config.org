@@ -96,8 +96,6 @@ Close other windows with SPC w 1:
 (map!
  :map evil-window-map
   :desc "close other windows"  "1" 'delete-other-windows
-  ; don't cancel running clock with "X":
-  :map org-agenda-mode-map "X" 'undefined
   )
 #+end_src
 
@@ -230,7 +228,7 @@ I need to learn how to refile better.
 
 Basic config:
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle yes
 (use-package! org-agenda
   :init
   (map! "<f1>"'(lambda (&optional arg) (interactive) (org-agenda arg " ")))
@@ -249,7 +247,7 @@ Basic config:
 
 Show birthdays in agenda:
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle yes
 (use-package! org-contacts
   :after org
   :init
@@ -260,7 +258,7 @@ Show birthdays in agenda:
 
 My custom agenda views:
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle yes
 (use-package! org-super-agenda
   :after org-agenda
   :init
