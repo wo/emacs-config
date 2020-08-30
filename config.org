@@ -1,0 +1,801 @@
+#+TITLE: Doom emacs config
+
+I use [[https://github.com/hlissner/doom-emacs][doom emacs]] to write notes, articles, and code. This is my configuration.
+
+* Basics
+
+Speed up processing of this file:
+
+#+begin_src emacs-lisp :tangle yes
+;;; config.el -*- lexical-binding: t; -*-
+#+end_src
+
+** Personal info
+
+#+begin_src emacs-lisp :tangle yes
+(setq user-full-name "Wolfgang Schwarz"
+      user-mail-address "wo@umsu.de")
+#+end_src
+
+Automatically find projects on startup:
+
+#+begin_src emacs-lisp :tangle yes
+(setq projectile-project-search-path '("~/words/" "~/notes/" "~/programming/"))
+#+end_src
+
+* User interface
+
+** Theme and font
+
+#+begin_src emacs-lisp :tangle yes
+(setq
+      doom-font (font-spec :family "monospace" :size 14)
+      doom-theme 'doom-one
+      doom-enable-brighter-comments 1
+      +doom-dashboard-banner-file (expand-file-name "logo.png" doom-private-dir)
+      )
+#+end_src
+
+Add a little padding to windows (currently doesn't seem to work):
+
+#+begin_src emacs-lisp :tangle yes
+(set-window-margins nil 1)
+#+end_src
+
+** Tweak org colours and symbols
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-ellipsis " ▾ "
+        org-bullets-bullet-list '("·"))
+  (set-face-attribute 'org-link nil :weight 'normal :background nil)
+  (set-face-attribute 'org-code nil :foreground "#a9a1e1" :background nil)
+  (set-face-attribute 'org-date nil :foreground "#5B6268" :background nil)
+  (set-face-attribute 'org-level-1 nil :foreground "steelblue2" :background nil :height 1.0 :weight 'bold)
+  (set-face-attribute 'org-level-2 nil :foreground "slategray2" :background nil :height 1.0 :weight 'bold)
+  (set-face-attribute 'org-level-3 nil :foreground "SkyBlue2" :background nil :height 1.0 :weight 'normal)
+  (set-face-attribute 'org-level-4 nil :foreground "DodgerBlue2" :background nil :height 1.0 :weight 'normal)
+  (set-face-attribute 'org-level-5 nil :weight 'normal) (set-face-attribute 'org-level-6 nil :weight 'normal)
+  (set-face-attribute 'org-document-title nil :foreground "SlateGray1" :background nil :height 1.75 :weight 'bold)
+  )
+#+end_src
+
+** Line numbers
+
+I'm going back and forth between relative line numbers and no line numbers.
+
+#+begin_src emacs-lisp :tangle yes
+;(setq display-line-numbers-type nil)
+(setq display-line-numbers-type 'relative)
+#+end_src
+
+** Start fullscreen
+
+#+begin_src emacs-lisp :tangle yes
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+#+end_src
+
+** Splitting and rotating windows
+
+Prompt for buffer after splitting the window (from [[https://tecosaur.github.io/emacs-config/config.html#package-configuration][tecosaur]]):
+
+#+begin_src emacs-lisp :tangle yes
+(setq evil-vsplit-window-right t
+      evil-split-window-below t)
+
+(defadvice! prompt-for-buffer (&rest _)
+  :after '(evil-window-split evil-window-vsplit)
+  (+ivy/switch-buffer))
+
+(setq +ivy-buffer-preview t)
+#+end_src
+
+Close other windows with SPC w 1:
+
+#+begin_src emacs-lisp :tangle yes
+(map!
+ :map evil-window-map
+  :desc "close other windows"  "1" 'delete-other-windows
+  ; don't cancel running clock with "X":
+  :map org-agenda-mode-map "X" 'undefined
+  )
+#+end_src
+
+
+* Snippets and auto-complete
+
+Snippets are useful:
+
+#+begin_src emacs-lisp :tangle yes
+(setq yas-snippet-dirs '("~/.doom.d/snippets"))
+#+end_src
+
+I've started to play around with abbrev-mode as well.
+
+#+begin_src emacs-lisp :tangle yes
+(use-package abbrev
+  :init
+  (setq-default abbrev-mode t)
+  :commands abbrev-mode
+  :config
+  (setq abbrev-file-name (expand-file-name "abbrev.el" doom-private-dir))
+  (setq save-abbrevs 'silently)
+  )
+#+end_src
+
+Configure the autocomplete popup:
+
+#+begin_src emacs-lisp :tangle yes
+(after! company
+  (setq company-idle-delay 0.1
+        company-minimum-prefix-length 1)
+  (setq company-show-numbers t)
+  ;; only autocomplete words, not numerals:
+  (setq company-dabbrev-char-regexp "[A-z:-]")
+  (add-hook 'evil-normal-state-entry-hook #'company-abort) ;; make aborting less annoying.
+)
+#+end_src
+
+Enable autocomplete for yasnippets:
+
+#+begin_src emacs-lisp :tangle yes
+(after! anaconda-mode
+  (set-company-backend! 'anaconda-mode '(company-anaconda company-yasnippet))
+  )
+#+end_src
+
+company-math looks interesting, but I can't get it to work.
+
+#+begin_src emacs-lisp :tangle no
+;; (use-package! company-math
+;;     :config
+;;     ;(add-to-list 'company-backends 'company-math-symbols-latex)
+;;     (add-to-list 'company-backends 'company-math-symbols-unicode)
+;;     (setq company-math-allow-latex-symbols-in-faces t)
+;;     (setq company-tooltip-align-annotations t))
+#+end_src
+
+
+* Org project management and agenda
+
+I use separate org files for different projects (e.g. research, teaching,
+supervision, software projects). Often these org files lie in dedicated project
+directories, but they are all symlinked to my ~/org directory.
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-directory "~/org")
+  (setq org-agenda-files '("~/org"))
+  )
+#+end_src
+
+** Quick access to org files
+
+I use SPC / to quickly access the project files. (This doesn't seem work if
+~/org is a git repository because then symlinks are ignored.)
+
+#+begin_src emacs-lisp :tangle yes
+(map!
+ :leader
+ :desc "open ~/org file" "/"  '(lambda () (interactive) (counsel-find-file "~/org/"))
+ )
+#+end_src
+
+** 'TODO' states
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-todo-keywords '((sequence "TODO(t)" "PROJ(p)" "APPT(a)" "WAIT(w)" "|" "DONE(d)" "CANCELLED(c)")))
+  (setq org-todo-keyword-faces '(("APPT" . +org-todo-active)
+                                 ("WAIT" . +org-todo-onhold)
+                                 ("PROJ" . +org-todo-project)))
+  )
+#+end_src
+
+** Priorities
+
+I use A-C priorities to plan my workdays and weeks.
+
+Unfortunately this means that if I'm not currently working on a project because
+I'm busy with other things, no task in that project can have a priority greater
+than D. So I use D-G priorities.
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-lowest-priority ?G)
+  )
+#+end_src
+
+** Refiling
+
+Create new parent nodes when refiling by adding /New Heading in the prompt:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-refile-allow-creating-parent-nodes 'confirm)
+  )
+#+end_src
+
+I need to learn how to refile better.
+
+#+begin_src emacs-lisp :tangle no
+;; org-refile:
+;; (setq org-refile-targets (quote (("projects.org" :maxlevel . 5)
+;;                                  ("archived_projects.org" :maxlevel . 5))))
+;; (setq org-outline-path-complete-in-steps nil         ; Refile in a single go
+;;       org-refile-use-outline-path t)                  ; Show full paths for refiling
+#+end_src
+
+** Agenda
+
+Basic config:
+
+#+begin_src emacs-lisp :tangle no
+(use-package! org-agenda
+  :init
+  (map! "<f1>"'(lambda (&optional arg) (interactive) (org-agenda arg " ")))
+  (setq org-agenda-skip-scheduled-if-done t
+        org-agenda-skip-deadline-if-done t
+        org-agenda-include-deadlines t
+        org-agenda-block-separator nil
+        org-log-repeat nil ; don't log state changes
+        ; show clocked items in the agenda:
+        ; org-agenda-start-with-log-mode t
+        )
+  :config
+  (setq org-columns-default-format "%40ITEM(Task) %Effort(EE){:} %CLOCKSUM(Time Spent) %SCHEDULED(Scheduled) %DEADLINE(Deadline)")
+  )
+#+end_src
+
+Show birthdays in agenda:
+
+#+begin_src emacs-lisp :tangle no
+(use-package! org-contacts
+  :after org
+  :init
+  (setq org-contacts-birthday-property "BIRTHDAY")
+  (setq org-contacts-files '("~/org/contacts.org"))
+  )
+#+end_src
+
+My custom agenda views:
+
+#+begin_src emacs-lisp :tangle no
+(use-package! org-super-agenda
+  :after org-agenda
+  :init
+  ;; don't break evil on org-super-agenda headings, see https://github.com/alphapapa/org-super-agenda/issues/50
+  (setq org-super-agenda-header-map (make-sparse-keymap))
+
+  (setq org-agenda-span 1 ; show only current day
+        org-agenda-start-day nil
+        )
+  (setq org-agenda-custom-commands
+        '((" " "Dashboard"
+           ((agenda "" ((org-agenda-overriding-header "Agenda\n")
+                        (org-super-agenda-groups
+                         '((:name " "
+                                  :time-grid t
+                                  :date today
+                                  :order 1)
+                           (:name "Deadlines"
+                                  :deadline t
+                                  :order 2)
+                           (:name " " ;; catch "Other Items", e.g. scheduled yesterday
+                                  :date t
+                                  :order 2)
+                           ))))
+            (alltodo "" ((org-agenda-overriding-header "")
+                         (org-super-agenda-groups
+                          '(
+                            (:name "Today's Tasks"
+                             :priority "A")
+                            ;; (:name "Regular Activities"
+                            ;;  :tag "regular")
+                            (:name "More Tasks"
+                             :priority "B")
+                            (:name "Even More Tasks"
+                             :priority "C")
+                            (:name "To refile"
+                             :file-path "inbox.org")
+                            ;; (:name "Active projects"
+                            ;;        :file-path "journal/")
+                            ;; (:name "Deadlines"
+                            ;;        :deadline t
+                            ;;        :order 2)
+                            ;; (:name "Future Schedule"
+                            ;;        :scheduled future
+                            ;;        :order 8)
+                            ;; (:name "Projects"
+                            ;;        :tag "project"
+                            ;;        :order 5)
+                            (:discard (:not (:todo "TODO")))))))))))
+  :config
+  (org-super-agenda-mode +1)
+  )
+#+end_src
+
+
+* Org capture
+
+I use org-capture all the time; even SPC n n is too long:
+
+#+begin_src emacs-lisp :tangle yes
+(map!
+ :leader
+ :desc "org-capture" "x" #'org-capture
+ )
+#+end_src
+
+** Capture templates
+
+#+begin_src emacs-lisp :tangle yes
+(after! org-capture
+  (setq org-capture-templates '(
+          ("t" "task (todo.org)" entry (file+headline "todo.org" "Single Tasks")
+           "* TODO %?")
+          ("s" "scheduled task (todo.org)" entry (file+headline "todo.org" "Single Tasks")
+           "* TODO %?\nSCHEDULED: %^t\n")
+          ("b" "buy (add to shopping list in todo.org)" entry (file+headline "todo.org" "Shopping list")
+           "* TODO buy %?")
+          ("a" "appointment (todo.org)" entry (file+headline "todo.org" "Calendar")
+           "* %?\n%^t")
+          ("i" "inbox entry" entry (file "inbox.org")
+           "* %?")
+          ("j" "journal/logbook entry (logbook.org)" entry (file+datetree "logbook.org")
+            "* %<%H:%M>\n%?\n" :tree-type week)
+          ;; '("j" "Journal entry" entry (function org-journal-find-location)
+          ;;   "* %(format-time-string org-journal-time-format)%\n%i%?")
+          ; from browser:
+          ("l" "link (from browser)" entry (file "inbox.org")
+           ;; "* TODO %a\n %?\n %i" :immediate-finish t))
+           "* TODO %a\n %?\n %i")
+          )
+  )
+  (setq org-protocol-default-template-key "l")
+  )
+#+end_src
+
+
+* Writing with org
+
+** General org tweaks
+
+I like automatic line breaks when I write prose.
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (add-hook 'org-mode-hook #'auto-fill-mode)
+)
+#+end_src
+
+Prevent editing hidden text:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-catch-invisible-edits 'error)
+  )
+#+end_src
+
+Disable smartparens:
+
+#+begin_src emacs-lisp :tangle yes
+(after! smartparens
+  (smartparens-global-mode -1))
+(add-hook 'org-mode-hook #'turn-off-smartparens-mode)
+#+end_src
+
+Partially fix M-RET and C-RET behaviour that's broken in doom:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-insert-heading-respect-content nil)
+  )
+#+end_src
+
+** Make org files prettier
+
+Hide slashes and stars:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-hide-emphasis-markers t)
+  )
+#+end_src
+
+Rendering of italics is currently broken, so let's give them colour:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (add-to-list 'org-emphasis-alist '("/" (italic :foreground "#ffdd99")))
+  )
+#+end_src
+
+Display LaTeX symbols are UTF characters:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-pretty-entities t)
+  )
+#+end_src
+
+Custom mappings from LaTeX code to characters:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-entities-user '(
+                            ("bot" "\\bot" nil "" "" "" "⊥")
+                            ("box" "$\\box$" nil "" "" "" "□")
+                            ("diamond" "$\\diamond$" nil "" "" "" "◇")
+                            )
+        )
+  )
+#+end_src
+
+Properly display sub- and superscripts:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-pretty-entities-include-sub-superscripts t)
+  )
+#+end_src
+
+** LaTeX preview
+
+LaTeX preview in org, mostly adapted from [[https://tecosaur.github.io/emacs-config/config.html][tecosaur]].
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-preview-latex-image-directory "~/.org/ltxpng/")
+  (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+  (add-hook 'org-mode-hook 'org-fragtog-mode)
+  (setq org-highlight-latex-and-related '(native script entities))
+)
+#+end_src
+
+Customize rendering of LaTeX fragments:
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-format-latex-header "\\documentclass{article}
+\\usepackage[usenames]{color}
+
+\\usepackage[T1]{fontenc}
+\\usepackage{mathtools}
+\\usepackage{textcomp,txfonts,latexsym,amssymb}
+\\usepackage[makeroom]{cancel}
+\\usepackage{qtree}
+\\usepackage{booktabs}
+\\newcommand{\\sem}[2][]{\\mbox{$[\\![ \#2 ]\\!]^{\#1}$}}
+
+\\pagestyle{empty}
+\\setlength{\\textwidth}{\\paperwidth}
+\\addtolength{\\textwidth}{-3cm}
+\\setlength{\\oddsidemargin}{1.5cm}
+\\addtolength{\\oddsidemargin}{-2.54cm}
+\\setlength{\\evensidemargin}{\\oddsidemargin}
+\\setlength{\\textheight}{\\paperheight}
+\\addtolength{\\textheight}{-\\headheight}
+\\addtolength{\\textheight}{-\\headsep}
+\\addtolength{\\textheight}{-\\footskip}
+\\addtolength{\\textheight}{-3cm}
+\\setlength{\\topmargin}{1.5cm}
+\\addtolength{\\topmargin}{-2.54cm}
+\\usepackage{arev}
+\\usepackage{arevmath}")
+#+end_src
+
+Make background transparent:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+;; (let ((dvipng--plist (alist-get 'dvipng org-preview-latex-process-alist)))
+;;   (plist-put dvipng--plist :use-xcolor t)
+;;   (plist-put dvipng--plist :image-converter '("dvipng -D %D -bg 'transparent' -T tight -o %O %f")))
+  (add-hook! 'doom-load-theme-hook
+    (defun +org-refresh-latex-background ()
+      (plist-put! org-format-latex-options
+                  :scale 1.0
+                  :background
+                  (face-attribute (or (cadr (assq 'default face-remapping-alist))
+                                      'default)
+                                  :background nil t))))
+  )
+#+end_src
+
+
+* Org-roam
+
+** Basic setup
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-roam-directory "/home/wo/notes/")
+(setq deft-directory "/home/wo/notes/")
+#+end_src
+
+Bugfix, see https://orgroam.slack.com/archives/CV20S23C0/p1587661307041500?thread_ts=1587583753.031900&cid=CV20S23C0:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org-roam
+  (setq org-roam-completion-system 'default)
+  )
+#+end_src
+
+Note template:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org-roam
+  (setq org-roam-capture-templates
+        (list
+         '("d" "default" plain (function org-roam--capture-get-point)
+           "%?"
+           :file-name "%<%Y%m%d%H%M>-${slug}"
+           :head "#+TITLE: ${title}\n\n"
+           :unnarrowed t)
+         ))
+  )
+#+end_src
+
+** Key bindings
+
+#+begin_src emacs-lisp :tangle yes
+(after! org-roam
+  (map! :leader
+        :prefix "n"
+        :desc "org-roam" "r" #'org-roam
+        :desc "org-roam-insert" "i" #'org-roam-insert
+        :desc "org-roam-switch-to-buffer" "b" #'org-roam-switch-to-buffer
+        :desc "org-roam-find-file" "f" #'org-roam-find-file
+        :desc "org-roam-show-graph" "g" #'org-roam-show-graph
+        :desc "org-roam-insert" "i" #'org-roam-insert
+        :desc "org-roam-capture" "c" #'org-roam-capture
+        )
+  )
+#+end_src
+
+I don't want to enter normal mode just to insert a reference or link to another note.
+
+#+begin_src emacs-lisp :tangle yes
+(after! org-roam
+  (map!
+   :desc "insert link" "C-c i" #'org-roam-insert
+   :desc "insert citation" "C-c c" #'org-ref-insert-link
+   )
+#+end_src
+
+** Tags
+
+Enable tags, and use directory path as tag:
+
+#+begin_src emacs-lisp :tangle yes
+(load! "org-roam-tags")
+(after! org-roam
+  (setq org-roam-tag-sources '(prop all-directories))
+  )
+#+end_src
+
+Org-roam should have built-in functions for editing tags.
+
+#+begin_src emacs-lisp :tangle yes
+(map!
+ :leader
+ :desc "add org-roam tag" "n t" #'+org-roam-tags-add
+)
+#+end_src
+
+** Citations and bibliography notes
+
+I don't fully understand how org-ref, helm-bibtex, org-roam-bibtex, etc. work
+together, but this seems to work.
+
+#+begin_src emacs-lisp :tangle yes
+(use-package! org-ref
+  :config
+  (setq
+   org-ref-completion-library 'org-ref-ivy-cite
+   org-ref-default-bibliography '("~/notes/literature.bib")
+   org-ref-pdf-directory  "~/papers/[A-Z]/"
+   org-ref-notes-directory "~/notes/literature"
+   org-ref-notes-function 'orb-edit-notes
+   )
+  (setq ; org-ref-default-ref-type "autoref"
+        ;; set this to nil to speed up agenda generation:
+        org-ref-show-broken-links nil
+        )
+  ; bugfix: allow opening pdf at point
+  (setq org-ref-get-pdf-filename-function (lambda (key) (car (bibtex-completion-find-pdf key))))
+        ;; org-ref-get-pdf-filename-helm-bibtex)
+  ;; (map! :leader
+  ;;       :desc "Citation" "i c" #'org-ref-insert-link
+  ;;       )
+  )
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+(after! org-ref
+  (setq
+   bibtex-completion-bibliography "~/notes/literature.bib"
+   bibtex-completion-library-path "~/papers/[A-Z]/"
+   bibtex-completion-notes-path "~/notes/literature/"
+   bibtex-completion-pdf-field "file"
+   bibtex-completion-pdf-symbol "⌘"
+   bibtex-completion-notes-symbol "✎"
+   bibtex-completion-notes-template-multiple-files (concat
+   "${author-or-editor} ${year} ${title}\n"
+   "#+ROAM_KEY: cite:${=key=}"
+   )
+  )
+  )
+
+(use-package org-roam-bibtex
+  :after (org-roam)
+  :hook (org-roam-mode . org-roam-bibtex-mode)
+  :config
+  (setq org-roam-bibtex-preformat-keywords
+   '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
+  (setq orb-templates
+        '(("r" "ref" plain (function org-roam-capture--get-point)
+           ""
+           :file-name "${slug}"
+           :head "#+TITLE: ${=key=}: ${title}\n#+ROAM_KEY: ${ref}"
+           :unnarrowed t)))
+)
+
+(org-link-set-parameters
+ "cite"
+ :display 'org-link)
+)
+#+end_src
+
+Call ivy-bibtex with SPC n p:
+
+#+begin_src emacs-lisp :tangle yes
+(map!
+ :leader
+ :desc "ivy-bibtex" "n p" #'ivy-bibtex
+ )
+#+end_src
+
+
+* BibTeX
+
+#+begin_src emacs-lisp :tangle yes
+(setq reftex-default-bibliography '("~/notes/literature.bib"))
+#+end_src
+
+Entry format in bibtex files:
+
+#+begin_src emacs-lisp :tangle yes
+(setq bibtex-align-at-equal-sign t ; fields aligned at equal sign
+      bibtex-autokey-name-year-separator ""
+      bibtex-autokey-year-title-separator ""
+      bibtex-autokey-titleword-first-ignore '("the" "a" "if" "and" "an")
+      bibtex-autokey-year-length 2
+      bibtex-autokey-titlewords 1
+      bibtex-autokey-titlewords-stretch 1
+      bibtex-autokey-titleword-length 20
+      ; additional default fields:
+      ;bibtex-user-optional-fields '("summary", "comments")
+      ; reformat/realign entry on C-c C-c:
+      bibtex-entry-format t
+      )
+#+end_src
+
+
+* Programming
+
+** Python
+
+#+begin_src emacs-lisp :tangle yes
+(setq python-fill-docstring-style 'symmetric)
+(setq python-shell-interpreter "python3")
+#+end_src
+
+
+* Anki Editor
+
+I've gone back to creating cards directly in Anki.
+
+#+begin_src emacs-lisp :tangle no
+
+;; (use-package anki-editor
+;;   :commands (anki-editor-mode)
+;; )
+
+;; (map! :localleader
+;;       :map org-mode-map
+;;       (:prefix ("k" . "Anki")
+;;         :desc "Insert a note interactively" "k" 'anki-editor-insert-note
+;;         :desc "Push notes to Anki" "p" 'anki-editor-push-notes
+;;         :desc "Retry pushing notes to Anki" "r" 'anki-editor-retry-failure-notes
+;;         :desc "Cloze region" "c" 'anki-editor-cloze-region
+;;         )
+;;       )
+
+;; (add-hook! org-mode
+;;   (anki-editor-mode))
+
+;; (setq org-my-anki-file "/home/wo/.org/anki.org")
+;; (after! org-capture
+;;   (add-to-list 'org-capture-templates
+;;                '("a" "Anki basic" entry
+;;                 (file+headline org-my-anki-file "Anki Dispatch")
+;;                 "* %<%H:%M>   %^g\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Basic\n:ANKI_DECK: Default\n:END:\n** Front\n%?\n** Back\n%x\n"))
+;;   (add-to-list 'org-capture-templates
+;;                '("A" "Anki cloze"
+;;                 entry
+;;                 (file+headline org-my-anki-file "Anki Dispatch")
+;;                 "* %<%H:%M>   %^g\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Cloze\n:ANKI_DECK: Default\n:END:\n** Text\n%x\n** Extra\n"))
+;;   )
+
+#+end_src
+
+
+* Email
+
+I sometimes play around with mu4e, but haven't switched completely.
+
+#+begin_src emacs-lisp :tangle yes
+(set-email-account! "UoE"
+  '((mu4e-sent-folder       . "/UoE/Sent Mail")
+    (mu4e-drafts-folder     . "/UoE/Drafts")
+    (mu4e-trash-folder      . "/UoE/Trash")
+    (mu4e-refile-folder     . "/UoE/All Mail")
+    (smtpmail-smtp-user     . "wschwarz@ed.ac.uk")
+    (user-mail-address      . "wschwarz@ed.ac.uk")
+    (mu4e-compose-signature . "\nBest,\nWolfgang"))
+  t)
+#+end_src
+
+The paths here are relative to ~/.mail.
+
+
+* Misc smaller settings
+
+Delete files to trash:
+
+#+begin_src emacs-lisp :tangle yes
+(setq-default delete-by-moving-to-trash t)
+#+end_src
+
+Raise undo-limit to 80Mb:
+
+#+begin_src emacs-lisp :tangle yes
+(setq undo-limit 80000000)
+#+end_src
+
+By default all insert changes are one big blob. Be more granular:
+
+#+begin_src emacs-lisp :tangle yes
+(setq evil-want-fine-undo t)
+#+end_src
+
+Make Y yank the whole line:
+
+#+begin_src emacs-lisp :tangle yes
+(evil-put-command-property 'evil-yank-line :motion 'evil-line)
+#+end_src
+
+Fix copy and paste to terminal:
+#+begin_src emacs-lisp :tangle yes
+(setq x-select-enable-clipboard t)
+#+end_src
+
+Auto-save buffers, backups in ~/.emacsbup/:
+#+begin_src emacs-lisp :tangle yes
+(auto-save-visited-mode +1)
+(setq backup-by-copying t      ; don't clobber symlinks
+      backup-directory-alist '(("." . "~/.emacsbup"))
+      delete-old-versions t
+      make-backup-files t
+      vc-make-backup-files t ; backup files even if version controlled
+      kept-new-versions 6
+      kept-old-versions 2
+      version-control t)       ; use versioned backups
+(setq auto-save-file-name-transforms
+  `((".*" "~/.emacsbup/" t)))
+#+end_src
+
+Allow moving past end of line (doesn't work):
+#+begin_src emacs-lisp :tangle yes
+(setq evil-move-beyond-eol t)
+#+end_src
