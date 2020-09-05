@@ -23,6 +23,7 @@ Automatically find projects on startup:
 (setq projectile-project-search-path '("~/words/" "~/notes/" "~/programming/"))
 #+end_src
 
+
 * User interface
 
 ** Theme and font
@@ -316,7 +317,7 @@ My custom agenda views:
 
 * Org capture
 
-I use org-capture all the time; even SPC n n is too long:
+I use org-capture all the time:
 
 #+begin_src emacs-lisp :tangle yes
 (map!
@@ -561,6 +562,7 @@ I don't want to enter normal mode just to insert a reference or link to another 
    :desc "insert link" "C-c i" #'org-roam-insert
    :desc "insert citation" "C-c c" #'org-ref-insert-link
    )
+)
 #+end_src
 
 ** Tags
@@ -644,7 +646,6 @@ together, but this seems to work.
 (org-link-set-parameters
  "cite"
  :display 'org-link)
-)
 #+end_src
 
 Call ivy-bibtex with SPC n p:
