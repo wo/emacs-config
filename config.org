@@ -406,7 +406,7 @@ Rendering of italics is currently broken, so let's give them colour:
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
-  (add-to-list 'org-emphasis-alist '("/" (italic :foreground "#ffdd99")))
+  (add-to-list 'org-emphasis-alist '("/" (italic :foreground "#dddd99")))
   )
 #+end_src
 
