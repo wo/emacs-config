@@ -753,6 +753,27 @@ The paths here are relative to ~/.mail.
 
 * Misc smaller settings
 
+Rename current file and buffer (from
+https://stackoverflow.com/questions/12634850/how-to-rename-a-file-by-editing-its-current-name):
+
+#+begin_src emacs-lisp :tangle yes
+(defun rename-file-and-buffer ()
+  "Renames current buffer and file it is visiting."
+  (interactive)
+  (let ((name (buffer-name))
+        (filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (message "Buffer '%s' is not visiting a file!" name)
+      (let ((new-name (read-file-name "New name: " filename)))
+        (cond ((get-buffer new-name)
+               (message "A buffer named '%s' already exists!" new-name))
+              (t
+               (rename-file name new-name 1)
+               (rename-buffer new-name)
+               (set-visited-file-name new-name)
+               (set-buffer-modified-p nil)))))))
+#+end_src
+
 Delete files to trash:
 
 #+begin_src emacs-lisp :tangle yes
