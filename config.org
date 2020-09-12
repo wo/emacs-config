@@ -233,16 +233,17 @@ Basic config:
 (use-package! org-agenda
   :init
   (map! "<f1>"'(lambda (&optional arg) (interactive) (org-agenda arg " ")))
+  (map! "<f2>"'(lambda (&optional arg) (interactive) (org-agenda arg "w")))
   (setq org-agenda-skip-scheduled-if-done t
         org-agenda-skip-deadline-if-done t
         org-agenda-include-deadlines t
         org-agenda-block-separator nil
-        org-log-repeat nil ; don't log state changes
+        ;; org-log-repeat nil ; don't log state changes
         ; show clocked items in the agenda:
         ; org-agenda-start-with-log-mode t
         )
-  :config
-  (setq org-columns-default-format "%40ITEM(Task) %Effort(EE){:} %CLOCKSUM(Time Spent) %SCHEDULED(Scheduled) %DEADLINE(Deadline)")
+  ;; :config
+  ;; (setq org-columns-default-format "%40ITEM(Task) %Effort(EE){:} %CLOCKSUM(Time Spent) %SCHEDULED(Scheduled) %DEADLINE(Deadline)")
   )
 #+end_src
 
@@ -266,37 +267,28 @@ My custom agenda views:
   ;; don't break evil on org-super-agenda headings, see https://github.com/alphapapa/org-super-agenda/issues/50
   (setq org-super-agenda-header-map (make-sparse-keymap))
 
-  (setq org-agenda-span 1 ; show only current day
-        org-agenda-start-day nil
-        )
+  ;; (setq org-agenda-span 1; show only current day
+  ;;       org-agenda-start-day nil
+  ;;       )
   (setq org-agenda-custom-commands
-        '((" " "Dashboard"
-           ((agenda "" ((org-agenda-overriding-header "Agenda\n")
+        '((" " "Today"
+           ((agenda "" ((org-agenda-span 1)
+                        (org-agenda-start-day nil)
+                        (org-agenda-overriding-header "Day Agenda\n")
                         (org-super-agenda-groups
-                         '((:name " "
-                                  :time-grid t
-                                  :date today
-                                  :order 1)
-                           (:name "Deadlines"
-                                  :deadline t
-                                  :order 2)
-                           (:name " " ;; catch "Other Items", e.g. scheduled yesterday
-                                  :date t
-                                  :order 2)
+                         '((:name "" :time-grid t :date today :order 1)
+                           (:name "Deadlines" :deadline t :order 2)
+                            ;; catch "Other Items", e.g. scheduled yesterday:
+                           (:name " " :date t :order 2)
                            ))))
             (alltodo "" ((org-agenda-overriding-header "")
                          (org-super-agenda-groups
                           '(
-                            (:name "Today's Tasks"
-                             :priority "A")
-                            ;; (:name "Regular Activities"
-                            ;;  :tag "regular")
-                            (:name "More Tasks"
-                             :priority "B")
-                            (:name "Even More Tasks"
-                             :priority "C")
-                            (:name "To refile"
-                             :file-path "inbox.org")
+                            (:name "Routines" :tag "routine")
+                            (:name "Today's Tasks" :priority "A")
+                            (:name "More Tasks" :priority "B")
+                            (:name "Even More Tasks" :priority "C")
+                            (:name "To refile" :file-path "inbox.org")
                             ;; (:name "Active projects"
                             ;;        :file-path "journal/")
                             ;; (:name "Deadlines"
@@ -308,9 +300,25 @@ My custom agenda views:
                             ;; (:name "Projects"
                             ;;        :tag "project"
                             ;;        :order 5)
-                            (:discard (:not (:todo "TODO")))))))))))
+                            (:discard (:anything t))))))))
+                            ;; (:discard (:not (:todo "TODO")))))))))
+          ("w" "This week"
+           ((agenda "" ((org-agenda-span 'week)
+                        (org-agenda-start-on-weekday 1)
+                        (org-agenda-overriding-header "Week Agenda\n")
+                        (org-agenda-block-separator " ")
+                        (org-super-agenda-groups
+                         '((:name " " :time-grid t :date today :order 1)
+                          ;; catch "Other Items", e.g. scheduled yesterday:
+                          (:name " " :date t :order 2)
+                          ))))))
+            ))
+
+  (custom-set-faces!
+    '(org-agenda-day :foreground "#ff0000"))
+
   :config
-  (org-super-agenda-mode +1)
+  (org-super-agenda-mode)
   )
 #+end_src
 
