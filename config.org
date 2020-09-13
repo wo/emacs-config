@@ -237,7 +237,7 @@ Basic config:
         org-agenda-skip-deadline-if-done t
         org-agenda-include-deadlines t
         org-agenda-block-separator nil
-        ;; org-log-repeat nil ; don't log state changes
+        org-log-repeat nil ; don't log state changes
         ; show clocked items in the agenda:
         ; org-agenda-start-with-log-mode t
         )
