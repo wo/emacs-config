@@ -434,7 +434,19 @@ I use org-capture all the time:
 
 * Writing with org
 
+** Turn off smartparens
+
+#+begin_src emacs-lisp :tangle yes
+(remove-hook 'doom-first-buffer-hook #'smartparens-global-mode)
+#+end_src
+
 ** General org tweaks
+
+Open files in folded state:
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-startup-folded 'overview)
+#+end_src
 
 I like automatic line breaks when I write prose.
 
@@ -447,25 +459,13 @@ I like automatic line breaks when I write prose.
 Prevent editing hidden text:
 
 #+begin_src emacs-lisp :tangle yes
-(after! org
-  (setq org-catch-invisible-edits 'error)
-  )
-#+end_src
-
-Disable smartparens:
-
-#+begin_src emacs-lisp :tangle yes
-(after! smartparens
-  (smartparens-global-mode -1))
-(add-hook 'org-mode-hook #'turn-off-smartparens-mode)
+(setq org-catch-invisible-edits 'error)
 #+end_src
 
 Partially fix M-RET and C-RET behaviour that's broken in doom:
 
 #+begin_src emacs-lisp :tangle yes
-(after! org
-  (setq org-insert-heading-respect-content nil)
-  )
+(setq org-insert-heading-respect-content nil)
 #+end_src
 
 ** Make org files prettier
@@ -757,6 +757,9 @@ Entry format in bibtex files:
       bibtex-entry-format t
       )
 #+end_src
+
+
+* LaTeX
 
 
 * Programming
