@@ -685,10 +685,6 @@ together, but this seems to work.
         )
   ; bugfix: allow opening pdf at point
   (setq org-ref-get-pdf-filename-function (lambda (key) (car (bibtex-completion-find-pdf key))))
-        ;; org-ref-get-pdf-filename-helm-bibtex)
-  ;; (map! :leader
-  ;;       :desc "Citation" "i c" #'org-ref-insert-link
-  ;;       )
   )
 #+end_src
 
@@ -708,8 +704,8 @@ together, but this seems to work.
   )
   )
 
-(use-package org-roam-bibtex
-  :after (org-roam)
+(use-package! org-roam-bibtex
+  :load-path "~/notes/literature.bib"
   :hook (org-roam-mode . org-roam-bibtex-mode)
   :config
   (setq org-roam-bibtex-preformat-keywords
