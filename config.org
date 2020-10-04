@@ -10,7 +10,7 @@ Speed up processing of this file:
 ;;; config.el -*- lexical-binding: t; -*-
 #+end_src
 
-** Personal info
+Personal info:
 
 #+begin_src emacs-lisp :tangle yes
 (setq user-full-name "Wolfgang Schwarz"
@@ -42,6 +42,9 @@ Add a little padding to windows (currently doesn't seem to work):
 #+begin_src emacs-lisp :tangle yes
 (set-window-margins nil 1)
 #+end_src
+
+# increase line-spacing:
+(setq line-spacing 0.3)
 
 ** Tweak org colours and symbols
 
