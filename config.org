@@ -502,6 +502,7 @@ Custom mappings from LaTeX code to characters:
                             ("Box" "$\\Box$" nil "" "" "" "□")
                             ("Diamond" "$\Diamond$" nil "" "" "" "◇")
                             ("models" "$\\models$" nil "" "" "" "⊨")
+                            ("vdash" "$\\vdash$" nil "" "" "" "⊢")
                             )
         )
   )
