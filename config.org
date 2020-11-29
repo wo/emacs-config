@@ -445,12 +445,6 @@ I use org-capture all the time:
 
 ** General org tweaks
 
-Open files in folded state:
-
-#+begin_src emacs-lisp :tangle yes
-(setq org-startup-folded 'overview)
-#+end_src
-
 I like automatic line breaks when I write prose.
 
 #+begin_src emacs-lisp :tangle yes
