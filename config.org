@@ -497,6 +497,7 @@ Custom mappings from LaTeX code to characters:
 (after! org
   (setq org-entities-user '(
                             ("bot" "\\bot" nil "" "" "" "⊥")
+                            ("top" "\⊤" nil "" "" "" "⊤")
                             ("box" "$\\box$" nil "" "" "" "□")
                             ("diamond" "$\\diamond$" nil "" "" "" "◇")
                             ("Box" "$\\Box$" nil "" "" "" "□")
