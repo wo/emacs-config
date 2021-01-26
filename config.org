@@ -582,11 +582,29 @@ Make background transparent:
 
 * Org-roam
 
+** Deft
+
+#+begin_src emacs-lisp :tangle yes
+(setq deft-directory "/home/wo/notes/"
+      deft-recursive t)
+#+end_src
+
+fix keybindings in deft window (https://github.com/hlissner/doom-emacs/issues/2991):
+#+begin_src emacs-lisp :tangle yes
+(map! :map deft-mode-map
+        :n "gr"  #'deft-refresh
+        :n "r"   #'deft-rename-file
+        :n "a"   #'deft-new-file
+        :n "A"   #'deft-new-file-named
+        :n "d"   #'deft-delete-file
+        :n "D"   #'deft-archive-file
+        :n "q"   #'kill-current-buffer)
+#+end_src
+
 ** Basic setup
 
 #+begin_src emacs-lisp :tangle yes
 (setq org-roam-directory "/home/wo/notes/")
-(setq deft-directory "/home/wo/notes/")
 #+end_src
 
 Bugfix, see https://orgroam.slack.com/archives/CV20S23C0/p1587661307041500?thread_ts=1587583753.031900&cid=CV20S23C0:
