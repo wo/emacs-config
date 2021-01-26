@@ -437,6 +437,14 @@ I use org-capture all the time:
 
 * Writing with org
 
+** Spell-checking
+
+fix https://github.com/hlissner/doom-emacs/issues/4138:
+
+#+begin_src emacs-lisp :tangle yes
+(setq ispell-dictionary "en")
+#+end_src
+
 ** Turn off smartparens
 
 #+begin_src emacs-lisp :tangle yes
@@ -872,16 +880,11 @@ Delete files to trash:
 (setq-default delete-by-moving-to-trash t)
 #+end_src
 
-Raise undo-limit to 80Mb:
+Raise undo-limit and allow fine-grained undo:
 
 #+begin_src emacs-lisp :tangle yes
-(setq undo-limit 80000000)
-#+end_src
-
-By default all insert changes are one big blob. Be more granular:
-
-#+begin_src emacs-lisp :tangle yes
-(setq evil-want-fine-undo t)
+(setq undo-limit 80000000
+      evil-want-fine-undo t)
 #+end_src
 
 Make Y yank the whole line:
@@ -895,9 +898,10 @@ Fix copy and paste to terminal:
 (setq x-select-enable-clipboard t)
 #+end_src
 
-Auto-save buffers, backups in ~/.emacsbup/:
+Auto-save buffers, backups in ~/.emacsbup/
+-- I currently don't auto-save because of that annoying strip-trailing-whitespace bug:
 #+begin_src emacs-lisp :tangle yes
-(auto-save-visited-mode +1)
+;; (auto-save-visited-mode 1)
 (setq backup-by-copying t      ; don't clobber symlinks
       backup-directory-alist '(("." . "~/.emacsbup"))
       delete-old-versions t
@@ -912,5 +916,5 @@ Auto-save buffers, backups in ~/.emacsbup/:
 
 Allow moving past end of line (doesn't work):
 #+begin_src emacs-lisp :tangle yes
-(setq evil-move-beyond-eol t)
+;; (setq evil-move-beyond-eol t)
 #+end_src
