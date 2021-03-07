@@ -910,11 +910,14 @@ Auto-save buffers, backups in ~/.emacsbup/
       kept-new-versions 6
       kept-old-versions 2
       version-control t)       ; use versioned backups
+
 (setq auto-save-file-name-transforms
   `((".*" "~/.emacsbup/" t)))
 #+end_src
 
 Allow moving past end of line (doesn't work):
+
 #+begin_src emacs-lisp :tangle yes
 ;; (setq evil-move-beyond-eol t)
 #+end_src
+
