@@ -439,10 +439,8 @@ I use org-capture all the time:
 
 ** Spell-checking
 
-fix https://github.com/hlissner/doom-emacs/issues/4138:
-
 #+begin_src emacs-lisp :tangle yes
-(setq ispell-dictionary "en")
+(setq ispell-dictionary "en_GB,de_DE")
 #+end_src
 
 ** Turn off smartparens
