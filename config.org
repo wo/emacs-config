@@ -892,14 +892,16 @@ Make Y yank the whole line:
 #+end_src
 
 Fix copy and paste to terminal:
+
 #+begin_src emacs-lisp :tangle yes
 (setq x-select-enable-clipboard t)
 #+end_src
 
 Auto-save buffers, backups in ~/.emacsbup/
--- I currently don't auto-save because of that annoying strip-trailing-whitespace bug:
+
 #+begin_src emacs-lisp :tangle yes
-;; (auto-save-visited-mode 1)
+(auto-save-visited-mode 1)
+
 (setq backup-by-copying t      ; don't clobber symlinks
       backup-directory-alist '(("." . "~/.emacsbup"))
       delete-old-versions t

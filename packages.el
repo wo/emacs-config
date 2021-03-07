@@ -62,3 +62,6 @@
   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
 ;; (package! helm-org-contacts
 ;;   :recipe (:host github :repo "tmalsburg/helm-org-contacts"))
+
+; Don't delete trailing whitespace in current line on autosave:
+(package! ws-butler :disable t)
