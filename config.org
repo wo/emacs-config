@@ -129,7 +129,7 @@ Configure the autocomplete popup:
 
 #+begin_src emacs-lisp :tangle yes
 (after! company
-  (setq company-idle-delay 0.1
+  (setq company-idle-delay 0.3
         company-minimum-prefix-length 1)
   (setq company-show-numbers t)
   ;; only autocomplete words, not numerals:
