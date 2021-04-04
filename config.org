@@ -451,6 +451,12 @@ I use org-capture all the time:
 
 ** General org tweaks
 
+Show only headings on opening:
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-startup-folded 'content)
+#+end_src
+
 I like automatic line breaks when I write prose.
 
 #+begin_src emacs-lisp :tangle yes
