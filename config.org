@@ -416,7 +416,7 @@ I use org-capture all the time:
            "* TODO %?\nSCHEDULED: %^t\n")
           ("b" "buy (add to shopping list in todo.org)" entry (file+headline "todo.org" "Shopping list")
            "* TODO buy %?")
-          ("a" "appointment (todo.org)" entry (file+headline "todo.org" "Calendar")
+          ("a" "appointment (schedule.org)" entry (file+headline "schedule.org" "Calendar")
            "* %?\n%^t")
           ("i" "inbox entry" entry (file "inbox.org")
            "* %?")
