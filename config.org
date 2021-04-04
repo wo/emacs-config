@@ -510,7 +510,9 @@ Custom mappings from LaTeX code to characters:
                             ("Diamond" "$\Diamond$" nil "" "" "" "◇")
                             ("models" "$\\models$" nil "" "" "" "⊨")
                             ("vdash" "$\\vdash$" nil "" "" "" "⊢")
-                            )
+                            ("llbracket" "$\\llbracket$" nil "" "" "" "⟦")
+                            ("rrbracket" "$\\rrbracket$" nil "" "" "" "⟧")
+                           )   
         )
   )
 #+end_src
