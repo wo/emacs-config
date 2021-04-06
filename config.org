@@ -43,8 +43,11 @@ Add a little padding to windows (currently doesn't seem to work):
 (set-window-margins nil 1)
 #+end_src
 
-# increase line-spacing:
-(setq line-spacing 0.3)
+Increase line-spacing:
+
+#+begin_src emacs-lisp :tangle yes
+(setq line-spacing 0.8)
+#+end_src
 
 ** Tweak org colours and symbols
 
@@ -495,7 +498,7 @@ Rendering of italics is currently broken, so let's give them colour:
   )
 #+end_src
 
-Display LaTeX symbols are UTF characters:
+Display LaTeX symbols as UTF characters:
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
@@ -503,7 +506,15 @@ Display LaTeX symbols are UTF characters:
   )
 #+end_src
 
-Custom mappings from LaTeX code to characters:
+Properly display sub- and superscripts:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-pretty-entities-include-sub-superscripts t)
+  )
+#+end_src
+
+** Custom mapping from LaTeX code to UTF8 characters
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
@@ -516,18 +527,10 @@ Custom mappings from LaTeX code to characters:
                             ("Diamond" "$\Diamond$" nil "" "" "" "◇")
                             ("models" "$\\models$" nil "" "" "" "⊨")
                             ("vdash" "$\\vdash$" nil "" "" "" "⊢")
-                            ("llbracket" "$\\llbracket$" nil "" "" "" "⟦")
-                            ("rrbracket" "$\\rrbracket$" nil "" "" "" "⟧")
+                            ("llb" "$\\llbracket$" nil "" "" "" "⟦")
+                            ("rrb" "$\\rrbracket$" nil "" "" "" "⟧")
                            )   
         )
-  )
-#+end_src
-
-Properly display sub- and superscripts:
-
-#+begin_src emacs-lisp :tangle yes
-(after! org
-  (setq org-pretty-entities-include-sub-superscripts t)
   )
 #+end_src
 
@@ -552,6 +555,7 @@ Customize rendering of LaTeX fragments:
 
 \\usepackage[T1]{fontenc}
 \\usepackage{mathtools}
+%\\usepackage{stmaryrd}
 \\usepackage{textcomp,txfonts,latexsym,amssymb}
 \\usepackage[makeroom]{cancel}
 \\usepackage{qtree}
