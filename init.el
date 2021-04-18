@@ -79,7 +79,7 @@
 
        :checkers
        syntax              ; tasing you for every semicolon you forget
-       (spell +flyspell)  ; flyspell can handle multiple languages
+       (spell +flyspell +hunspell)  ; flyspell can handle multiple languages
        grammar             ; tasing grammar mistake every you make
 
        :tools

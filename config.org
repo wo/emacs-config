@@ -455,18 +455,6 @@ I use org-capture all the time:
 
 * Writing with org
 
-** Spell-checking
-
-#+begin_src emacs-lisp :tangle yes
-(setq ispell-dictionary "en_GB,de_DE")
-#+end_src
-
-** Turn off smartparens
-
-#+begin_src emacs-lisp :tangle yes
-(remove-hook 'doom-first-buffer-hook #'smartparens-global-mode)
-#+end_src
-
 ** General org tweaks
 
 Show only headings on opening:
@@ -493,6 +481,49 @@ Partially fix M-RET and C-RET behaviour that's broken in doom:
 
 #+begin_src emacs-lisp :tangle yes
 (setq org-insert-heading-respect-content nil)
+#+end_src
+
+** Spell-checking 
+
+I can’t figure out how to properly set up spell-checking with multiple dictionaries.
+
+#+begin_src emacs-lisp :tangle yes
+(setq ispell-local-dictionary "en_GB")
+(setq ispell-program-name "hunspell")
+(setq ispell-hunspell-dictionary-alist '(("de_DE"
+                                            "[[:alpha:]]"
+                                            "[^[:alpha:]]"
+                                            "['.ß-]" 'many-otherchars
+                                            ("-r" "-d" "de_DE") nil utf-8)
+                                           ("en_GB"
+                                            "[[:alpha:]]"
+                                            "[^[:alpha:]]"
+                                            "[']" nil
+                                            ("-r" "-d" "en_GB") nil utf-8)))
+;; (when (boundp 'ispell-hunspell-dictionary-alist)
+;;   (setq ispell-hunspell-dictionary-alist ispell-local-dictionary-alist))
+;; For saving words to the personal dictionary, don't infer it from
+;; the locale, otherwise it would save to ~/.hunspell_en_GB.
+(setq ispell-personal-dictionary "~/.hunspell_personal")
+;; The personal dictionary file has to exist, otherwise hunspell will
+;; silently not use it.
+#+end_src
+
+The guess-language package guesses which spellchecker to use.
+
+#+begin_src emacs-lisp :tangle yes
+(setq guess-language-langcodes
+  '((en . ("en_GB" "English"))
+    (de . ("de_DE" "German"))))
+;; (setq guess-language-languages '(en de))
+(add-hook 'org-mode-hook (lambda () (guess-language-mode 1)))
+#+end_src
+
+
+** Turn off smartparens
+
+#+begin_src emacs-lisp :tangle yes
+(remove-hook 'doom-first-buffer-hook #'smartparens-global-mode)
 #+end_src
 
 ** Make org files prettier
@@ -527,6 +558,13 @@ Properly display sub- and superscripts:
 (after! org
   (setq org-pretty-entities-include-sub-superscripts t)
   )
+#+end_src
+
+Nicer typography with typo-mode:
+
+#+begin_src emacs-lisp :tangle yes
+(typo-global-mode 1)
+(add-hook 'org-mode-hook 'typo-mode)
 #+end_src
 
 ** Custom mapping from LaTeX code to UTF8 characters
@@ -615,25 +653,6 @@ Make background transparent:
 
 * Org-roam
 
-** Deft
-
-#+begin_src emacs-lisp :tangle yes
-(setq deft-directory "/home/wo/notes/"
-      deft-recursive t)
-#+end_src
-
-fix keybindings in deft window (https://github.com/hlissner/doom-emacs/issues/2991):
-#+begin_src emacs-lisp :tangle yes
-(map! :map deft-mode-map
-        :n "gr"  #'deft-refresh
-        :n "r"   #'deft-rename-file
-        :n "a"   #'deft-new-file
-        :n "A"   #'deft-new-file-named
-        :n "d"   #'deft-delete-file
-        :n "D"   #'deft-archive-file
-        :n "q"   #'kill-current-buffer)
-#+end_src
-
 ** Basic setup
 
 #+begin_src emacs-lisp :tangle yes
@@ -709,6 +728,25 @@ Org-roam should have built-in functions for editing tags.
  :leader
  :desc "add org-roam tag" "n t" #'+org-roam-tags-add
 )
+#+end_src
+
+** Deft
+
+#+begin_src emacs-lisp :tangle yes
+(setq deft-directory "/home/wo/notes/"
+      deft-recursive t)
+#+end_src
+
+fix keybindings in deft window (https://github.com/hlissner/doom-emacs/issues/2991):
+#+begin_src emacs-lisp :tangle yes
+(map! :map deft-mode-map
+        :n "gr"  #'deft-refresh
+        :n "r"   #'deft-rename-file
+        :n "a"   #'deft-new-file
+        :n "A"   #'deft-new-file-named
+        :n "d"   #'deft-delete-file
+        :n "D"   #'deft-archive-file
+        :n "q"   #'kill-current-buffer)
 #+end_src
 
 ** Citations and bibliography notes
