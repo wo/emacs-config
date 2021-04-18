@@ -211,6 +211,21 @@ than D. So I use D-G priorities.
   )
 #+end_src
 
+** Key bindings
+
+I often insert inactive timestamps to document when an event/conversation took
+place, and I don't want to enter normal mode and press SPC m d T each time.
+
+#+begin_src emacs-lisp :tangle yes
+(map! :after org
+      :map org-mode-map
+      "C-c ," nil
+)
+(map!
+   :desc "insert inactive timestamp" "C-c ," #'org-time-stamp-inactive
+)
+#+end_src
+
 ** Refiling
 
 Create new parent nodes when refiling by adding /New Heading in the prompt:
