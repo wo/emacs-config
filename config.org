@@ -485,7 +485,7 @@ Partially fix M-RET and C-RET behaviour that's broken in doom:
 
 ** Spell-checking 
 
-I can’t figure out how to properly set up spell-checking with multiple dictionaries.
+Why is it so hard to set up spell-checking with multiple dictionaries?
 
 #+begin_src emacs-lisp :tangle yes
 (setq ispell-local-dictionary "en_GB")
@@ -509,16 +509,30 @@ I can’t figure out how to properly set up spell-checking with multiple diction
 ;; silently not use it.
 #+end_src
 
-The guess-language package guesses which spellchecker to use.
+The guess-language package guesses which spellchecker to use, but I can’t get it
+to work properly.
 
 #+begin_src emacs-lisp :tangle yes
-(setq guess-language-langcodes
-  '((en . ("en_GB" "English"))
-    (de . ("de_DE" "German"))))
+;; (setq guess-language-langcodes
+;;   '((en . ("en_GB" "English"))
+;;     (de . ("de_DE" "German"))))
 ;; (setq guess-language-languages '(en de))
-(add-hook 'org-mode-hook (lambda () (guess-language-mode 1)))
+;; (add-hook 'org-mode-hook (lambda () (guess-language-mode 1)))
 #+end_src
 
+So I’m switching manually:
+
+#+begin_src emacs-lisp :tangle yes
+(defun fd-switch-dictionary()
+(interactive)
+(let* ((dic ispell-current-dictionary)
+    (change (if (string= dic "deutsch8") "english" "deutsch8")))
+(ispell-change-dictionary change)
+(message "Dictionary switched from %s to %s" dic change)
+))
+
+(global-set-key (kbd "<f9>")   'fd-switch-dictionary)
+#+end_src
 
 ** Turn off smartparens
 
