@@ -30,7 +30,7 @@ Automatically find projects on startup:
 
 #+begin_src emacs-lisp :tangle yes
 (setq
-      doom-font (font-spec :family "monospace" :size 14)
+      doom-font (font-spec :family "monospace" :size 15)
       doom-theme 'doom-one
       doom-enable-brighter-comments 1
       +doom-dashboard-banner-file (expand-file-name "logo.png" doom-private-dir)
@@ -46,7 +46,7 @@ Add a little padding to windows (currently doesn't seem to work):
 Increase line-spacing:
 
 #+begin_src emacs-lisp :tangle yes
-(setq line-spacing 0.8)
+(setq-default line-spacing 0.2)
 #+end_src
 
 ** Tweak org colours and symbols
@@ -574,12 +574,12 @@ Properly display sub- and superscripts:
   )
 #+end_src
 
-Nicer typography with typo-mode:
+# Nicer typography with typo-mode:
 
-#+begin_src emacs-lisp :tangle yes
-(typo-global-mode 1)
-(add-hook 'org-mode-hook 'typo-mode)
-#+end_src
+# #+begin_src emacs-lisp :tangle yes
+# (typo-global-mode 1)
+# (add-hook 'org-mode-hook 'typo-mode)
+# #+end_src
 
 ** Custom mapping from LaTeX code to UTF8 characters
 

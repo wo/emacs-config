@@ -64,10 +64,10 @@
 ;;   :recipe (:host github :repo "tmalsburg/helm-org-contacts"))
 
 ; nicer typography:
-(package! typo)
+;; (package! typo)
 
 ; choose spell-checker based on current language:
-(package! guess-language)
+;; (package! guess-language)
 
 ; Don't delete trailing whitespace in current line on autosave:
 (package! ws-butler :disable t)
