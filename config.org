@@ -109,10 +109,16 @@ Close other windows with SPC w 1:
 
 * Snippets and auto-complete
 
-Snippets are useful:
+Snippets are useful.
 
 #+begin_src emacs-lisp :tangle yes
 (setq yas-snippet-dirs '("~/.doom.d/snippets"))
+#+end_src
+
+Allow inserting in edit mode:
+
+#+begin_src emacs-lisp :tangle yes
+(map! :desc "insert snippet" "C-s" #'yas-insert-snippet)
 #+end_src
 
 I've started to play around with abbrev-mode as well.
