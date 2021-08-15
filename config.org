@@ -72,8 +72,8 @@ Increase line-spacing:
 I'm going back and forth between relative line numbers and no line numbers.
 
 #+begin_src emacs-lisp :tangle yes
-;(setq display-line-numbers-type nil)
-(setq display-line-numbers-type 'relative)
+(setq display-line-numbers-type nil)
+;(setq display-line-numbers-type 'relative)
 #+end_src
 
 ** Start fullscreen
@@ -138,7 +138,7 @@ Configure the autocomplete popup:
 
 #+begin_src emacs-lisp :tangle yes
 (after! company
-  (setq company-idle-delay 0.3
+  (setq company-idle-delay 0.8
         company-minimum-prefix-length 1)
   (setq company-show-numbers t)
   ;; only autocomplete words, not numerals:
@@ -676,29 +676,57 @@ Make background transparent:
 ** Basic setup
 
 #+begin_src emacs-lisp :tangle yes
-(setq org-roam-directory "/home/wo/notes/")
+(setq org-roam-directory (file-truename "/home/wo/notes/"))
+:init
+(setq org-roam-v2-ack t)
 #+end_src
 
-Bugfix, see https://orgroam.slack.com/archives/CV20S23C0/p1587661307041500?thread_ts=1587583753.031900&cid=CV20S23C0:
+Hide property drawers:
 
 #+begin_src emacs-lisp :tangle yes
-(after! org-roam
-  (setq org-roam-completion-system 'default)
-  )
+(defun org-hide-properties ()
+  "Hide all org-mode headline property drawers in buffer. Could be slow if it has a lot of overlays."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward
+            "^ *:properties:\n\\( *:.+?:.*\n\\)+ *:end:\n" nil t)
+      (let ((ov_this (make-overlay (match-beginning 0) (match-end 0))))
+        (overlay-put ov_this 'display "")
+        (overlay-put ov_this 'hidden-prop-drawer t))))
+  (put 'org-toggle-properties-hide-state 'state 'hidden))
+
+(defun org-show-properties ()
+  "Show all org-mode property drawers hidden by org-hide-properties."
+  (interactive)
+  (remove-overlays (point-min) (point-max) 'hidden-prop-drawer t)
+  (put 'org-toggle-properties-hide-state 'state 'shown))
+
+(defun org-toggle-properties ()
+  "Toggle visibility of property drawers."
+  (interactive)
+  (if (eq (get 'org-toggle-properties-hide-state 'state) 'hidden)
+      (org-show-properties)
+    (org-hide-properties)))
 #+end_src
 
-Note template:
+** Note templates
 
 #+begin_src emacs-lisp :tangle yes
 (after! org-roam
   (setq org-roam-capture-templates
         (list
-         '("d" "default" plain (function org-roam--capture-get-point)
+         '("n" "default note" plain (function org-roam--capture-get-point)
            "%?"
-           :file-name "%<%Y%m%d%H%M>-${slug}"
-           :head "#+TITLE: ${title}\n\n"
+           :if-new (file+head "%<%Y%m%d%H%M>-${slug}.org"
+                    "#+title: ${title}\n\n")
            :unnarrowed t)
-         ))
+         '("l" "literature note" plain "%?"
+          :if-new (file+head "literature/${slug}.org"
+                             "#+title: ${author-or-editor} ${year} ${title}\n"
+          :unnarrowed t)
+	)
+       	)
   )
 #+end_src
 
@@ -708,12 +736,10 @@ Note template:
 (after! org-roam
   (map! :leader
         :prefix "n"
-        :desc "org-roam" "r" #'org-roam
-        :desc "org-roam-insert" "i" #'org-roam-insert
-        :desc "org-roam-switch-to-buffer" "b" #'org-roam-switch-to-buffer
-        :desc "org-roam-find-file" "f" #'org-roam-find-file
+        :desc "org-roam-buffer-toggle" "r" #'org-roam-buffer-toggle
+        :desc "org-roam-node-insert" "i" #'org-roam-node-insert
+        :desc "org-roam-node-find" "f" #'org-roam-node-find
         :desc "org-roam-show-graph" "g" #'org-roam-show-graph
-        :desc "org-roam-insert" "i" #'org-roam-insert
         :desc "org-roam-capture" "c" #'org-roam-capture
         )
   )
@@ -724,7 +750,7 @@ I don't want to enter normal mode just to insert a reference or link to another 
 #+begin_src emacs-lisp :tangle yes
 (after! org-roam
   (map!
-   :desc "insert link" "C-c i" #'org-roam-insert
+   :desc "insert link to node" "C-c i" #'org-roam-node-insert
    :desc "insert citation" "C-c c" #'org-ref-insert-link
    )
 )
@@ -736,28 +762,49 @@ Enable tags, and use directory path as tag:
 
 #+begin_src emacs-lisp :tangle yes
 (load! "org-roam-tags")
-(after! org-roam
-  (setq org-roam-tag-sources '(prop all-directories))
-  )
 #+end_src
 
-Org-roam should have built-in functions for editing tags.
+Emulate subdirectories-as-tags behaviour from v1:
+
+#+begin_src emacs-lisp :tangle yes
+(cl-defmethod org-roam-node-directories ((node org-roam-node))
+  (if-let ((dirs (file-name-directory (file-relative-name (org-roam-node-file node) org-roam-directory))))
+      (format "(%s)" (string-join (f-split dirs) "/"))
+    ""))
+
+(setq org-roam-node-display-template "${directories:10} ${title:*} ${tags:10}")
+#+end_src
+
+Key bindings for adding and removing tags:
 
 #+begin_src emacs-lisp :tangle yes
 (map!
  :leader
- :desc "add org-roam tag" "n t" #'+org-roam-tags-add
+ :desc "add org-roam tag" "n t" #'+org-roam-tag-add
+ :desc "remove org-roam tag" "n T" #'+org-roam-tag-remove
 )
 #+end_src
 
 ** Deft
 
+For searching through notes.
+
 #+begin_src emacs-lisp :tangle yes
-(setq deft-directory "/home/wo/notes/"
+(setq deft-directory org-roam-directory
+      deft-use-filter-string-for-filename t
+      deft-default-extension "org"
       deft-recursive t)
 #+end_src
 
+Make summaries readable (https://github.com/jrblevin/deft/issues/75):
+
+#+begin_src emacs-lisp :tangle yes
+(setq deft-strip-summary-regexp ":PROPERTIES:\n\\(.+\n\\)+:END:\n")
+(setq deft-use-filename-as-title 't)
+#+end_src
+
 fix keybindings in deft window (https://github.com/hlissner/doom-emacs/issues/2991):
+
 #+begin_src emacs-lisp :tangle yes
 (map! :map deft-mode-map
         :n "gr"  #'deft-refresh
@@ -804,23 +851,14 @@ together, but this seems to work.
    bibtex-completion-notes-symbol "✎"
    bibtex-completion-notes-template-multiple-files (concat
    "${author-or-editor} ${year} ${title}\n"
-   "#+ROAM_KEY: cite:${=key=}"
    )
   )
   )
 
 (use-package! org-roam-bibtex
+  :after org-roam
   :load-path "~/notes/literature.bib"
   :hook (org-roam-mode . org-roam-bibtex-mode)
-  :config
-  (setq org-roam-bibtex-preformat-keywords
-   '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
-  (setq orb-templates
-        '(("r" "ref" plain (function org-roam-capture--get-point)
-           ""
-           :file-name "${slug}"
-           :head "#+TITLE: ${=key=}: ${title}\n#+ROAM_KEY: ${ref}"
-           :unnarrowed t)))
 )
 
 (org-link-set-parameters
