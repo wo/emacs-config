@@ -705,8 +705,7 @@ Call ivy-bibtex with SPC n p:
                         
   (setq org-roam-capture-templates
         (list
-         '("n" "default note" plain (function org-roam--capture-get-point)
-           "%?"
+         '("n" "default note" plain "%?"
            :if-new (file+head "%<%Y%m%d%H%M>-${slug}.org"
                     "#+TITLE: ${title}\n\n")
            :unnarrowed t)
