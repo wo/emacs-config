@@ -60,7 +60,7 @@
   :recipe (:host github :repo "tmalsburg/helm-bibtex"))
 (package! org-roam-bibtex
   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
-(unpin! org-roam)
+(unpin! org-roam company-org-roam)
 ;; (package! helm-org-contacts
 ;;   :recipe (:host github :repo "tmalsburg/helm-org-contacts"))
 

@@ -76,6 +76,12 @@ I'm going back and forth between relative line numbers and no line numbers.
 ;(setq display-line-numbers-type 'relative)
 #+end_src
 
+** Show word count
+
+#+begin_src emacs-lisp :tangle yes
+(setq doom-modeline-enable-word-count t)
+#+end_src
+
 ** Start fullscreen
 
 #+begin_src emacs-lisp :tangle yes
@@ -469,7 +475,7 @@ Show only headings on opening:
 (setq org-startup-folded 'content)
 #+end_src
 
-I like automatic line breaks when I write prose.
+I like automatic line breaks when I write prose:
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
@@ -487,63 +493,6 @@ Partially fix M-RET and C-RET behaviour that's broken in doom:
 
 #+begin_src emacs-lisp :tangle yes
 (setq org-insert-heading-respect-content nil)
-#+end_src
-
-** Spell-checking 
-
-Why is it so hard to set up spell-checking with multiple dictionaries?
-
-#+begin_src emacs-lisp :tangle yes
-(setq ispell-local-dictionary "en_GB")
-(setq ispell-program-name "hunspell")
-(setq ispell-hunspell-dictionary-alist '(("de_DE"
-                                            "[[:alpha:]]"
-                                            "[^[:alpha:]]"
-                                            "['.ß-]" 'many-otherchars
-                                            ("-r" "-d" "de_DE") nil utf-8)
-                                           ("en_GB"
-                                            "[[:alpha:]]"
-                                            "[^[:alpha:]]"
-                                            "[']" nil
-                                            ("-r" "-d" "en_GB") nil utf-8)))
-;; (when (boundp 'ispell-hunspell-dictionary-alist)
-;;   (setq ispell-hunspell-dictionary-alist ispell-local-dictionary-alist))
-;; For saving words to the personal dictionary, don't infer it from
-;; the locale, otherwise it would save to ~/.hunspell_en_GB.
-(setq ispell-personal-dictionary "~/.hunspell_personal")
-;; The personal dictionary file has to exist, otherwise hunspell will
-;; silently not use it.
-#+end_src
-
-The guess-language package guesses which spellchecker to use, but I can’t get it
-to work properly.
-
-#+begin_src emacs-lisp :tangle yes
-;; (setq guess-language-langcodes
-;;   '((en . ("en_GB" "English"))
-;;     (de . ("de_DE" "German"))))
-;; (setq guess-language-languages '(en de))
-;; (add-hook 'org-mode-hook (lambda () (guess-language-mode 1)))
-#+end_src
-
-So I’m switching manually:
-
-#+begin_src emacs-lisp :tangle yes
-(defun fd-switch-dictionary()
-(interactive)
-(let* ((dic ispell-current-dictionary)
-    (change (if (string= dic "deutsch8") "english" "deutsch8")))
-(ispell-change-dictionary change)
-(message "Dictionary switched from %s to %s" dic change)
-))
-
-(global-set-key (kbd "<f9>")   'fd-switch-dictionary)
-#+end_src
-
-** Turn off smartparens
-
-#+begin_src emacs-lisp :tangle yes
-(remove-hook 'doom-first-buffer-hook #'smartparens-global-mode)
 #+end_src
 
 ** Make org files prettier
@@ -670,67 +619,106 @@ Make background transparent:
   )
 #+end_src
 
-
-* Org-roam
-
-** Basic setup
+** Citations
 
 #+begin_src emacs-lisp :tangle yes
-(setq org-roam-directory (file-truename "/home/wo/notes/"))
-:init
+(use-package! org-ref
+  :config
+  (setq
+   org-ref-default-bibliography '("~/notes/literature.bib")
+   org-ref-pdf-directory  "~/papers/[A-Z]/"
+   ;; org-ref-notes-directory "~/notes/literature"
+   ;; org-ref-notes-function 'orb-edit-notes
+   org-ref-show-broken-links nil ;; speed up agenda generation
+   ;; bugfix: allow opening pdf at point
+   org-ref-get-pdf-filename-function (lambda (key) (car (bibtex-completion-find-pdf key)))
+   org-ref-completion-library 'org-ref-ivy-cite
+  )
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+(after! org-ref
+  (use-package! ivy-bibtex
+    :config
+    (setq
+     bibtex-completion-bibliography "~/notes/literature.bib"
+     bibtex-completion-library-path "~/papers/[A-Z]/"
+     bibtex-completion-notes-path "~/notes/literature/"
+     bibtex-completion-pdf-field "file"
+     bibtex-completion-pdf-symbol "⌘"
+     bibtex-completion-notes-symbol "✎"
+     )
+  )
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+(org-link-set-parameters
+ "cite"
+ :display 'org-link)
+#+end_src
+
+I don't want to enter normal mode just to insert a reference:
+
+#+begin_src emacs-lisp :tangle yes
+(map!
+ :desc "insert citation" "C-c c" #'org-ref-insert-link
+ )
+#+end_src
+
+Call ivy-bibtex with SPC n p:
+
+#+begin_src emacs-lisp :tangle yes
+(map!
+ :leader
+ :desc "open bibliography database (ivy-bibtex)" "n p" #'ivy-bibtex
+ )
+#+end_src
+
+** Zettel (org-roam)
+
+*** Basic config
+
+#+begin_src emacs-lisp :tangle yes
 (setq org-roam-v2-ack t)
+(setq org-roam-directory (file-truename "/home/wo/notes/"))
+(after! org-roam
+  (add-hook 'after-init-hook 'org-roam-mode)
+)
+(use-package! org-roam-bibtex
+  :after org-roam
+  :load-path "~/notes/literature.bib"
+  :hook (org-roam-mode . org-roam-bibtex-mode)
+)
 #+end_src
 
-Hide property drawers:
-
-#+begin_src emacs-lisp :tangle yes
-(defun org-hide-properties ()
-  "Hide all org-mode headline property drawers in buffer. Could be slow if it has a lot of overlays."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward
-            "^ *:properties:\n\\( *:.+?:.*\n\\)+ *:end:\n" nil t)
-      (let ((ov_this (make-overlay (match-beginning 0) (match-end 0))))
-        (overlay-put ov_this 'display "")
-        (overlay-put ov_this 'hidden-prop-drawer t))))
-  (put 'org-toggle-properties-hide-state 'state 'hidden))
-
-(defun org-show-properties ()
-  "Show all org-mode property drawers hidden by org-hide-properties."
-  (interactive)
-  (remove-overlays (point-min) (point-max) 'hidden-prop-drawer t)
-  (put 'org-toggle-properties-hide-state 'state 'shown))
-
-(defun org-toggle-properties ()
-  "Toggle visibility of property drawers."
-  (interactive)
-  (if (eq (get 'org-toggle-properties-hide-state 'state) 'hidden)
-      (org-show-properties)
-    (org-hide-properties)))
-#+end_src
-
-** Note templates
+*** Note templates
 
 #+begin_src emacs-lisp :tangle yes
 (after! org-roam
+
+  (setq orb-preformat-keywords
+        '("citekey" "title" "year" "author-or-editor" "file")
+        orb-process-file-keyword t
+        orb-file-field-extensions '("pdf"))
+                        
   (setq org-roam-capture-templates
         (list
          '("n" "default note" plain (function org-roam--capture-get-point)
            "%?"
            :if-new (file+head "%<%Y%m%d%H%M>-${slug}.org"
-                    "#+title: ${title}\n\n")
+                    "#+TITLE: ${title}\n\n")
            :unnarrowed t)
          '("l" "literature note" plain "%?"
-          :if-new (file+head "literature/${slug}.org"
-                             "#+title: ${author-or-editor} ${year} ${title}\n"
-          :unnarrowed t)
-	)
-       	)
+          :if-new (file+head "literature/${citekey}.org"
+                             "#+TITLE: ${author-or-editor} ${year} ${title}\n")
+        ))
   )
+)
 #+end_src
 
-** Key bindings
+*** Key bindings
 
 #+begin_src emacs-lisp :tangle yes
 (after! org-roam
@@ -745,24 +733,17 @@ Hide property drawers:
   )
 #+end_src
 
-I don't want to enter normal mode just to insert a reference or link to another note.
+I don't want to enter normal mode just to insert a link to another note:
 
 #+begin_src emacs-lisp :tangle yes
 (after! org-roam
   (map!
    :desc "insert link to node" "C-c i" #'org-roam-node-insert
-   :desc "insert citation" "C-c c" #'org-ref-insert-link
    )
 )
 #+end_src
 
-** Tags
-
-Enable tags, and use directory path as tag:
-
-#+begin_src emacs-lisp :tangle yes
-(load! "org-roam-tags")
-#+end_src
+*** Tags
 
 Emulate subdirectories-as-tags behaviour from v1:
 
@@ -785,7 +766,7 @@ Key bindings for adding and removing tags:
 )
 #+end_src
 
-** Deft
+*** Deft
 
 For searching through notes.
 
@@ -816,63 +797,90 @@ fix keybindings in deft window (https://github.com/hlissner/doom-emacs/issues/29
         :n "q"   #'kill-current-buffer)
 #+end_src
 
-** Citations and bibliography notes
-
-I don't fully understand how org-ref, helm-bibtex, org-roam-bibtex, etc. work
-together, but this seems to work.
+*** Hide property drawers
 
 #+begin_src emacs-lisp :tangle yes
-(use-package! org-ref
-  :config
-  (setq
-   org-ref-completion-library 'org-ref-ivy-cite
-   org-ref-default-bibliography '("~/notes/literature.bib")
-   org-ref-pdf-directory  "~/papers/[A-Z]/"
-   org-ref-notes-directory "~/notes/literature"
-   org-ref-notes-function 'orb-edit-notes
-   )
-  (setq ; org-ref-default-ref-type "autoref"
-        ;; set this to nil to speed up agenda generation:
-        org-ref-show-broken-links nil
-        )
-  ; bugfix: allow opening pdf at point
-  (setq org-ref-get-pdf-filename-function (lambda (key) (car (bibtex-completion-find-pdf key))))
-  )
+(defun org-hide-properties ()
+  "Hide all org-mode headline property drawers in buffer. Could be slow if it has a lot of overlays."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward
+            "^ *:properties:\n\\( *:.+?:.*\n\\)+ *:end:\n" nil t)
+      (let ((ov_this (make-overlay (match-beginning 0) (match-end 0))))
+        (overlay-put ov_this 'display "")
+        (overlay-put ov_this 'hidden-prop-drawer t))))
+  (put 'org-toggle-properties-hide-state 'state 'hidden))
+
+(defun org-show-properties ()
+  "Show all org-mode property drawers hidden by org-hide-properties."
+  (interactive)
+  (remove-overlays (point-min) (point-max) 'hidden-prop-drawer t)
+  (put 'org-toggle-properties-hide-state 'state 'shown))
+
+(defun org-toggle-properties ()
+  "Toggle visibility of property drawers."
+  (interactive)
+  (if (eq (get 'org-toggle-properties-hide-state 'state) 'hidden)
+      (org-show-properties)
+    (org-hide-properties)))
 #+end_src
 
+** Spell-checking 
+
+Why is it so hard to set up spell-checking with multiple dictionaries?
+
 #+begin_src emacs-lisp :tangle yes
-(after! org-ref
-  (setq
-   bibtex-completion-bibliography "~/notes/literature.bib"
-   bibtex-completion-library-path "~/papers/[A-Z]/"
-   bibtex-completion-notes-path "~/notes/literature/"
-   bibtex-completion-pdf-field "file"
-   bibtex-completion-pdf-symbol "⌘"
-   bibtex-completion-notes-symbol "✎"
-   bibtex-completion-notes-template-multiple-files (concat
-   "${author-or-editor} ${year} ${title}\n"
-   )
-  )
-  )
-
-(use-package! org-roam-bibtex
-  :after org-roam
-  :load-path "~/notes/literature.bib"
-  :hook (org-roam-mode . org-roam-bibtex-mode)
-)
-
-(org-link-set-parameters
- "cite"
- :display 'org-link)
+(setq ispell-local-dictionary "en_GB")
+(setq ispell-program-name "hunspell")
+(setq ispell-hunspell-dictionary-alist '(("de_DE"
+                                            "[[:alpha:]]"
+                                            "[^[:alpha:]]"
+                                            "['.ß-]" 'many-otherchars
+                                            ("-r" "-d" "de_DE") nil utf-8)
+                                           ("en_GB"
+                                            "[[:alpha:]]"
+                                            "[^[:alpha:]]"
+                                            "[']" nil
+                                            ("-r" "-d" "en_GB") nil utf-8)))
+;; (when (boundp 'ispell-hunspell-dictionary-alist)
+;;   (setq ispell-hunspell-dictionary-alist ispell-local-dictionary-alist))
+;; For saving words to the personal dictionary, don't infer it from
+;; the locale, otherwise it would save to ~/.hunspell_en_GB.
+(setq ispell-personal-dictionary "~/.hunspell_personal")
+;; The personal dictionary file has to exist, otherwise hunspell will
+;; silently not use it.
 #+end_src
 
-Call ivy-bibtex with SPC n p:
+The guess-language package guesses which spellchecker to use, but I can’t get it
+to work properly.
 
 #+begin_src emacs-lisp :tangle yes
-(map!
- :leader
- :desc "ivy-bibtex" "n p" #'ivy-bibtex
- )
+;; (setq guess-language-langcodes
+;;   '((en . ("en_GB" "English"))
+;;     (de . ("de_DE" "German"))))
+;; (setq guess-language-languages '(en de))
+;; (add-hook 'org-mode-hook (lambda () (guess-language-mode 1)))
+#+end_src
+
+So I’m switching manually:
+
+#+begin_src emacs-lisp :tangle yes
+(defun fd-switch-dictionary()
+(interactive)
+(let* ((dic ispell-current-dictionary)
+    (change (if (string= dic "deutsch8") "english" "deutsch8")))
+(ispell-change-dictionary change)
+(message "Dictionary switched from %s to %s" dic change)
+))
+
+(global-set-key (kbd "<f9>")   'fd-switch-dictionary)
+#+end_src
+
+** Turn off smartparens
+
+#+begin_src emacs-lisp :tangle yes
+(remove-hook 'doom-first-buffer-hook #'smartparens-global-mode)
 #+end_src
 
 
