@@ -467,6 +467,18 @@ I use org-capture all the time:
 
 * Writing with org
 
+** Writeroom mode
+
+Distraction-free prose writing. This comes from the :ui zen module.
+
+#+begin_src emacs-lisp :tangle yes
+(setq +zen-text-scale 0.9
+      writeroom-extra-line-spacing 0.3
+      doom-variable-pitch-font (font-spec :family "Source Sans Pro" :size 20 :weight regular)
+      writeroom-fullscreen-effect t
+ )
+#+end_src
+
 ** General org tweaks
 
 Show only headings on opening:
