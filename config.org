@@ -474,7 +474,7 @@ Distraction-free prose writing. This comes from the :ui zen module.
 #+begin_src emacs-lisp :tangle yes
 (setq +zen-text-scale 0.9
       writeroom-extra-line-spacing 0.3
-      doom-variable-pitch-font (font-spec :family "Source Sans Pro" :size 20 :weight regular)
+      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 18)
       writeroom-fullscreen-effect t
  )
 #+end_src
@@ -539,6 +539,10 @@ Properly display sub- and superscripts:
 (after! org
   (setq org-pretty-entities-include-sub-superscripts t)
   )
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+;; (add-hook! 'org-mode-hook #'+org-pretty-mode
 #+end_src
 
 # Nicer typography with typo-mode:
@@ -772,8 +776,9 @@ Key bindings for adding and removing tags:
 #+begin_src emacs-lisp :tangle yes
 (map!
  :leader
- :desc "add org-roam tag" "n t" #'+org-roam-tag-add
- :desc "remove org-roam tag" "n T" #'+org-roam-tag-remove
+ :prefix "n"
+ :desc "add org-roam tag" "t" #'+org-roam-tag-add
+ :desc "remove org-roam tag" "T" #'+org-roam-tag-remove
 )
 #+end_src
 
@@ -835,6 +840,27 @@ fix keybindings in deft window (https://github.com/hlissner/doom-emacs/issues/29
   (if (eq (get 'org-toggle-properties-hide-state 'state) 'hidden)
       (org-show-properties)
     (org-hide-properties)))
+#+end_src
+
+*** Convert LaTeX notes to org
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-run-tex2org ()
+  (interactive)
+  (shell-command-on-region
+   ; mark whole buffer:
+   (point-min)
+   (point-max)
+   ; the command:
+   "python3 /home/wo/notes/tex2org.py"
+   ; output:
+   (current-buffer)
+   ; replace:
+   t
+   ; name of error buffer:
+   "*tex2org Error Buffer*"
+   ; show error buffer:
+   t))
 #+end_src
 
 ** Spell-checking 
