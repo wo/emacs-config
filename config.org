@@ -641,8 +641,8 @@ Make background transparent:
 (use-package! org-ref
   :config
   (setq
-   org-ref-default-bibliography '("~/notes/literature.bib")
-   org-ref-pdf-directory  "~/papers/[A-Z]/"
+   org-ref-default-bibliography '("/home/wo/notes/literature.bib")
+   org-ref-pdf-directory  "/home/wo/papers/[A-Z]/"
    ;; org-ref-notes-directory "~/notes/literature"
    ;; org-ref-notes-function 'orb-edit-notes
    org-ref-show-broken-links nil ;; speed up agenda generation
@@ -722,7 +722,11 @@ Call ivy-bibtex with SPC n p:
   (setq org-roam-capture-templates
         (list
          '("n" "default note" plain "%?"
-           :if-new (file+head "%<%Y%m%d%H%M>-${slug}.org"
+           :if-new (file+head "%<%Y%m%d>-${slug}.org"
+                    "#+TITLE: ${title}\n\n")
+           :unnarrowed t)
+         '("b" "blog post" plain "%?"
+           :if-new (file+head "blog/%<%Y%m%d>-${slug}.org"
                     "#+TITLE: ${title}\n\n")
            :unnarrowed t)
          '("l" "literature note" plain "%?"
@@ -844,6 +848,8 @@ fix keybindings in deft window (https://github.com/hlissner/doom-emacs/issues/29
 
 *** Convert LaTeX notes to org
 
+This function replaces the content of the current buffer
+
 #+begin_src emacs-lisp :tangle yes
 (defun my-run-tex2org ()
   (interactive)
@@ -861,6 +867,19 @@ fix keybindings in deft window (https://github.com/hlissner/doom-emacs/issues/29
    "*tex2org Error Buffer*"
    ; show error buffer:
    t))
+#+end_src
+
+*** Convert blog posts to HTML and submit to server
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-run-post_to_server ()
+  (interactive)
+  (save-buffenr)
+  (shell-command
+   (format "python3 /home/wo/notes/blog/post_to_server.py %s"
+           (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
 #+end_src
 
 ** Spell-checking 
@@ -924,7 +943,7 @@ So I’m switching manually:
 * BibTeX
 
 #+begin_src emacs-lisp :tangle yes
-(setq reftex-default-bibliography '("~/notes/literature.bib"))
+(setq reftex-default-bibliography '("/home/wo/notes/literature.bib"))
 #+end_src
 
 Entry format in bibtex files:
