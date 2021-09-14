@@ -560,6 +560,7 @@ Properly display sub- and superscripts:
                             ("bot" "\\bot" nil "" "" "" "⊥")
                             ("top" "\⊤" nil "" "" "" "⊤")
                             ("box" "$\\box$" nil "" "" "" "□")
+                            ("boxright" "$\\boxright$" nil "" "" "" "□→")
                             ("diamond" "$\\diamond$" nil "" "" "" "◇")
                             ("Box" "$\\Box$" nil "" "" "" "□")
                             ("Diamond" "$\Diamond$" nil "" "" "" "◇")
@@ -781,8 +782,8 @@ Key bindings for adding and removing tags:
 (map!
  :leader
  :prefix "n"
- :desc "add org-roam tag" "t" #'+org-roam-tag-add
- :desc "remove org-roam tag" "T" #'+org-roam-tag-remove
+ :desc "add org-roam tag" "t" #'org-roam-tag-add
+ :desc "remove org-roam tag" "T" #'org-roam-tag-remove
 )
 #+end_src
 
@@ -851,7 +852,7 @@ fix keybindings in deft window (https://github.com/hlissner/doom-emacs/issues/29
 This function replaces the content of the current buffer
 
 #+begin_src emacs-lisp :tangle yes
-(defun my-run-tex2org ()
+(defun my-tex2org ()
   (interactive)
   (shell-command-on-region
    ; mark whole buffer:
@@ -872,9 +873,9 @@ This function replaces the content of the current buffer
 *** Convert blog posts to HTML and submit to server
 
 #+begin_src emacs-lisp :tangle yes
-(defun my-run-post_to_server ()
+(defun my-post-to-server ()
   (interactive)
-  (save-buffenr)
+  (save-buffer)
   (shell-command
    (format "python3 /home/wo/notes/blog/post_to_server.py %s"
            (shell-quote-argument (buffer-file-name))))
