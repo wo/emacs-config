@@ -883,6 +883,17 @@ This function replaces the content of the current buffer
 )
 #+end_src
 
+#+begin_src emacs-lisp :tangle yes
+(defun my-update-tags-on-server ()
+  (interactive)
+  (save-buffer)
+  (shell-command
+   (format "python3 /home/wo/notes/blog/update_tags_on_server.py %s"
+           (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
+#+end_src
+
 ** Spell-checking 
 
 Why is it so hard to set up spell-checking with multiple dictionaries?
