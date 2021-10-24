@@ -93,14 +93,14 @@ I'm going back and forth between relative line numbers and no line numbers.
 Prompt for buffer after splitting the window (from [[https://tecosaur.github.io/emacs-config/config.html#package-configuration][tecosaur]]):
 
 #+begin_src emacs-lisp :tangle yes
-(setq evil-vsplit-window-right t
-      evil-split-window-below t)
+;; (setq evil-vsplit-window-right t
+;;       evil-split-window-below t)
 
-(defadvice! prompt-for-buffer (&rest _)
-  :after '(evil-window-split evil-window-vsplit)
-  (+ivy/switch-buffer))
+;; (defadvice! prompt-for-buffer (&rest _)
+;;   :after '(evil-window-split evil-window-vsplit)
+;;   (+ivy/switch-buffer))
 
-(setq +ivy-buffer-preview t)
+;; (setq +ivy-buffer-preview t)
 #+end_src
 
 Close other windows with SPC w 1:
@@ -490,9 +490,9 @@ Show only headings on opening:
 I like automatic line breaks when I write prose:
 
 #+begin_src emacs-lisp :tangle yes
-(after! org
-  (add-hook 'org-mode-hook #'auto-fill-mode)
-)
+;; (after! org
+;;   (add-hook 'org-mode-hook #'auto-fill-mode)
+;; )
 #+end_src
 
 Prevent editing hidden text:
@@ -541,6 +541,20 @@ Properly display sub- and superscripts:
   )
 #+end_src
 
+Expand invisible markup when editing:
+
+#+begin_src emacs-lisp :tangle yes
+(use-package! org-appear
+  :hook (org-mode . org-appear-mode)
+  :config
+  (setq org-appear-autoemphasis t
+        org-appear-autosubmarkers t
+        org-appear-autolinks t)
+  ;; for proper first-time setup, `org-appear--set-elements'
+  ;; needs to be run after other hooks have acted.
+  (run-at-time nil nil #'org-appear--set-elements))
+#+end_src
+
 #+begin_src emacs-lisp :tangle yes
 ;; (add-hook! 'org-mode-hook #'+org-pretty-mode
 #+end_src
@@ -580,8 +594,11 @@ LaTeX preview in org, mostly adapted from [[https://tecosaur.github.io/emacs-con
 #+begin_src emacs-lisp :tangle yes
 (after! org
   (setq org-preview-latex-image-directory "~/.org/ltxpng/")
+  ; cdlatex allows, among other things, inserting latex environments with C-c {:
   (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+  ; toggle LaTeX preview as cursor moves in/out:
   (add-hook 'org-mode-hook 'org-fragtog-mode)
+  ; make LaTex snippets look better:
   (setq org-highlight-latex-and-related '(native script entities))
 )
 #+end_src
@@ -590,11 +607,10 @@ Customize rendering of LaTeX fragments:
 
 #+begin_src emacs-lisp :tangle yes
 (setq org-format-latex-header "\\documentclass{article}
-\\usepackage[usenames]{color}
+\\usepackage[usenames]{xcolor}
 
 \\usepackage[T1]{fontenc}
 \\usepackage{mathtools}
-%\\usepackage{stmaryrd}
 \\usepackage{textcomp,txfonts,latexsym,amssymb}
 \\usepackage[makeroom]{cancel}
 \\usepackage{qtree}
@@ -618,38 +634,33 @@ Customize rendering of LaTeX fragments:
 \\usepackage{arevmath}")
 #+end_src
 
-Make background transparent:
+Make background transparent and scale font-size up a little:
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
-;; (let ((dvipng--plist (alist-get 'dvipng org-preview-latex-process-alist)))
-;;   (plist-put dvipng--plist :use-xcolor t)
-;;   (plist-put dvipng--plist :image-converter '("dvipng -D %D -bg 'transparent' -T tight -o %O %f")))
-  (add-hook! 'doom-load-theme-hook
-    (defun +org-refresh-latex-background ()
-      (plist-put! org-format-latex-options
-                  :scale 1.0
-                  :background
-                  (face-attribute (or (cadr (assq 'default face-remapping-alist))
-                                      'default)
-                                  :background nil t))))
-  )
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.2))
+  (setq org-format-latex-options (plist-put org-format-latex-options :background "Transparent"))
+)
 #+end_src
 
 ** Citations
 
+configure org-ref:
+
 #+begin_src emacs-lisp :tangle yes
 (use-package! org-ref
+  :after org
   :config
   (setq
-   org-ref-default-bibliography '("/home/wo/notes/literature.bib")
-   org-ref-pdf-directory  "/home/wo/papers/[A-Z]/"
+   ;; org-ref-default-bibliography '("/home/wo/notes/literature.bib")
+   ;; org-ref-pdf-directory  "/home/wo/papers/[A-Z]/"
    ;; org-ref-notes-directory "~/notes/literature"
    ;; org-ref-notes-function 'orb-edit-notes
    org-ref-show-broken-links nil ;; speed up agenda generation
    ;; bugfix: allow opening pdf at point
    org-ref-get-pdf-filename-function (lambda (key) (car (bibtex-completion-find-pdf key)))
    org-ref-completion-library 'org-ref-ivy-cite
+   org-ref-default-citation-link "citep"
   )
 )
 #+end_src
@@ -707,10 +718,12 @@ Call ivy-bibtex with SPC n p:
   :after org-roam
   :load-path "~/notes/literature.bib"
   :hook (org-roam-mode . org-roam-bibtex-mode)
+  :config
+  (require 'org-ref)
 )
 #+end_src
 
-*** Note templates
+**** Note templates
 
 #+begin_src emacs-lisp :tangle yes
 (after! org-roam
@@ -719,7 +732,7 @@ Call ivy-bibtex with SPC n p:
         '("citekey" "title" "year" "author-or-editor" "file")
         orb-process-file-keyword t
         orb-file-field-extensions '("pdf"))
-                        
+  
   (setq org-roam-capture-templates
         (list
          '("n" "default note" plain "%?"
@@ -728,6 +741,10 @@ Call ivy-bibtex with SPC n p:
            :unnarrowed t)
          '("b" "blog post" plain "%?"
            :if-new (file+head "blog/%<%Y%m%d>-${slug}.org"
+                    "#+TITLE: ${title}\n\n")
+           :unnarrowed t)
+         '("p" "new paper" plain "%?"
+           :if-new (file+head "papers/%<%Y>-${slug}.org"
                     "#+TITLE: ${title}\n\n")
            :unnarrowed t)
          '("l" "literature note" plain "%?"
@@ -756,9 +773,15 @@ Call ivy-bibtex with SPC n p:
 I don't want to enter normal mode just to insert a link to another note:
 
 #+begin_src emacs-lisp :tangle yes
+(defun my-insert-link-to-note ()
+  "insert link to org node and prompt for link text"
+  (interactive)
+  (org-roam-node-insert)
+  (call-interactively #'org-insert-link)
+  )
 (after! org-roam
   (map!
-   :desc "insert link to node" "C-c i" #'org-roam-node-insert
+   :desc "insert link to node" "C-c i" #'my-insert-link-to-note
    )
 )
 #+end_src
@@ -818,33 +841,42 @@ fix keybindings in deft window (https://github.com/hlissner/doom-emacs/issues/29
         :n "q"   #'kill-current-buffer)
 #+end_src
 
-*** Hide property drawers
+*** Change title -- update buffer name, filename, and links
+
+From https://org-roam.discourse.group/t/does-renaming-title-no-longer-renames-the-filename/2018/2
 
 #+begin_src emacs-lisp :tangle yes
-(defun org-hide-properties ()
-  "Hide all org-mode headline property drawers in buffer. Could be slow if it has a lot of overlays."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward
-            "^ *:properties:\n\\( *:.+?:.*\n\\)+ *:end:\n" nil t)
-      (let ((ov_this (make-overlay (match-beginning 0) (match-end 0))))
-        (overlay-put ov_this 'display "")
-        (overlay-put ov_this 'hidden-prop-drawer t))))
-  (put 'org-toggle-properties-hide-state 'state 'hidden))
-
-(defun org-show-properties ()
-  "Show all org-mode property drawers hidden by org-hide-properties."
-  (interactive)
-  (remove-overlays (point-min) (point-max) 'hidden-prop-drawer t)
-  (put 'org-toggle-properties-hide-state 'state 'shown))
-
-(defun org-toggle-properties ()
-  "Toggle visibility of property drawers."
-  (interactive)
-  (if (eq (get 'org-toggle-properties-hide-state 'state) 'hidden)
-      (org-show-properties)
-    (org-hide-properties)))
+  (defun my-org-roam-change-title ()
+    "Modify title of org-roam current node and update all backlinks in roam database."
+    (interactive)
+    (unless (org-roam-buffer-p) (error "Not in an org-roam buffer."))
+    (save-some-buffers t)
+    (let* ((old-title (org-roam-get-keyword "title"))
+           (ID (org-entry-get (point) "ID"))
+           (new-title (read-string "Enter new title: " old-title)))
+      (org-roam-set-keyword "title" new-title)
+      (save-buffer)
+      (let* ((new-slug (org-roam-node-slug (org-roam-node-at-point)))
+             (new-file-name (replace-regexp-in-string "-.*\\.org" (format "-%s.org" new-slug) (buffer-file-name)))
+             (new-buffer-name (file-name-nondirectory new-file-name)))
+        (rename-buffer new-buffer-name)
+        (rename-file (buffer-file-name) new-file-name 1)
+        (set-visited-file-name new-file-name))
+      (save-buffer)
+      ;; Rename backlinks in the rest of the Org-roam database.
+      (let* ((search (format "[[id:%s][%s]]" ID old-title))
+             (replace (format "[[id:%s][%s]]" ID new-title))
+             (rg-command (format "rg -t org -lF %s ~/Org/roam/" search))
+             (file-list (split-string (shell-command-to-string rg-command))))
+        (dolist (file file-list)
+          (let ((file-open (get-file-buffer file)))
+            (find-file file)
+            (beginning-of-buffer)
+            (while (search-forward search nil t)
+              (replace-match replace))
+            (save-buffer)
+            (unless file-open
+              (kill-buffer)))))))
 #+end_src
 
 *** Convert LaTeX notes to org
@@ -869,8 +901,9 @@ This function replaces the content of the current buffer
    ; show error buffer:
    t))
 #+end_src
+** Blog posts
 
-*** Convert blog posts to HTML and submit to server
+ Convert blog posts to HTML and submit to server
 
 #+begin_src emacs-lisp :tangle yes
 (defun my-post-to-server ()
@@ -890,6 +923,22 @@ This function replaces the content of the current buffer
   (shell-command
    (format "python3 /home/wo/notes/blog/update_tags_on_server.py %s"
            (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
+#+end_src
+
+** Papers
+
+Convert org to LaTeX
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-org2tex ()
+  (interactive)
+  (save-buffer)
+  (call-process-shell-command
+   (format "python3 /home/wo/notes/papers/org2tex.py %s"
+           (shell-quote-argument (buffer-file-name)))
+   nil 0)
   (revert-buffer t t t)
 )
 #+end_src

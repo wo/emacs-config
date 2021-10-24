@@ -55,6 +55,7 @@
 ;(package! anki-editor)
 (package! org-fragtog) ; auto-toggle latex previews
 (package! cdlatex)
+(package! org-appear)
 (package! org-ref)
 (package! ivy-bibtex
   :recipe (:host github :repo "tmalsburg/helm-bibtex"))
