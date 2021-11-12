@@ -50,6 +50,7 @@
 ;; our package manager can't deal with; see raxod502/straight.el#279)
 ;(package! builtin-package :recipe (:branch "develop"))
 
+(package! olivetti)
 (package! org-super-agenda)
 ;(package! org-clock-convenience)
 ;(package! anki-editor)

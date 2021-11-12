@@ -23,8 +23,7 @@ Automatically find projects on startup:
 (setq projectile-project-search-path '("~/words/" "~/notes/" "~/programming/"))
 #+end_src
 
-
-* User interface
+* General appearance
 
 ** Theme and font
 
@@ -37,34 +36,27 @@ Automatically find projects on startup:
       )
 #+end_src
 
-Add a little padding to windows (currently doesn't seem to work):
-
-#+begin_src emacs-lisp :tangle yes
-(set-window-margins nil 1)
-#+end_src
-
-Increase line-spacing:
-
-#+begin_src emacs-lisp :tangle yes
-(setq-default line-spacing 0.2)
-#+end_src
-
-** Tweak org colours and symbols
+** Colour adjustments for org
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
-  (setq org-ellipsis " ▾ "
-        org-bullets-bullet-list '("·"))
   (set-face-attribute 'org-link nil :weight 'normal :background nil)
   (set-face-attribute 'org-code nil :foreground "#a9a1e1" :background nil)
   (set-face-attribute 'org-date nil :foreground "#5B6268" :background nil)
-  (set-face-attribute 'org-level-1 nil :foreground "steelblue2" :background nil :height 1.0 :weight 'bold)
-  (set-face-attribute 'org-level-2 nil :foreground "slategray2" :background nil :height 1.0 :weight 'bold)
+  (set-face-attribute 'org-level-1 nil :foreground "steelblue2" :background nil :height 1.2 :weight 'bold)
+  (set-face-attribute 'org-level-2 nil :foreground "slategray2" :background nil :height 1.1 :weight 'bold)
   (set-face-attribute 'org-level-3 nil :foreground "SkyBlue2" :background nil :height 1.0 :weight 'normal)
   (set-face-attribute 'org-level-4 nil :foreground "DodgerBlue2" :background nil :height 1.0 :weight 'normal)
   (set-face-attribute 'org-level-5 nil :weight 'normal) (set-face-attribute 'org-level-6 nil :weight 'normal)
   (set-face-attribute 'org-document-title nil :foreground "SlateGray1" :background nil :height 1.75 :weight 'bold)
   )
+#+end_src
+
+
+** Increase line-spacing
+
+#+begin_src emacs-lisp :tangle yes
+(setq-default line-spacing 0.2)
 #+end_src
 
 ** Line numbers
@@ -88,23 +80,9 @@ I'm going back and forth between relative line numbers and no line numbers.
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 #+end_src
 
-** Splitting and rotating windows
-
-Prompt for buffer after splitting the window (from [[https://tecosaur.github.io/emacs-config/config.html#package-configuration][tecosaur]]):
-
-#+begin_src emacs-lisp :tangle yes
-;; (setq evil-vsplit-window-right t
-;;       evil-split-window-below t)
-
-;; (defadvice! prompt-for-buffer (&rest _)
-;;   :after '(evil-window-split evil-window-vsplit)
-;;   (+ivy/switch-buffer))
-
-;; (setq +ivy-buffer-preview t)
-#+end_src
+** Keyboard shortcut for closing other windows
 
 Close other windows with SPC w 1:
-
 #+begin_src emacs-lisp :tangle yes
 (map!
  :map evil-window-map
@@ -170,6 +148,38 @@ company-math looks interesting, but I can't get it to work.
 ;;     (add-to-list 'company-backends 'company-math-symbols-unicode)
 ;;     (setq company-math-allow-latex-symbols-in-faces t)
 ;;     (setq company-tooltip-align-annotations t))
+#+end_src
+
+
+* General org-mode tweaks
+
+** Prettier org symbols
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-ellipsis " ▾ "
+        org-bullets-bullet-list '("·"))
+  )
+#+end_src
+
+** Start-up folded
+
+Show only headings on opening:
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-startup-folded 'content)
+#+end_src
+
+** Prevent editing hidden text:
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-catch-invisible-edits 'error)
+#+end_src
+
+** Partially fix M-RET and C-RET behaviour that's broken in doom
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-insert-heading-respect-content nil)
 #+end_src
 
 
@@ -479,35 +489,35 @@ Distraction-free prose writing. This comes from the :ui zen module.
  )
 #+end_src
 
-** General org tweaks
-
-Show only headings on opening:
-
-#+begin_src emacs-lisp :tangle yes
-(setq org-startup-folded 'content)
-#+end_src
+** Line-breaks
 
 I like automatic line breaks when I write prose:
 
 #+begin_src emacs-lisp :tangle yes
-;; (after! org
-;;   (add-hook 'org-mode-hook #'auto-fill-mode)
-;; )
-#+end_src
-
-Prevent editing hidden text:
-
-#+begin_src emacs-lisp :tangle yes
-(setq org-catch-invisible-edits 'error)
-#+end_src
-
-Partially fix M-RET and C-RET behaviour that's broken in doom:
-
-#+begin_src emacs-lisp :tangle yes
-(setq org-insert-heading-respect-content nil)
+(after! org
+  (add-hook 'org-mode-hook #'auto-fill-mode)
+)
 #+end_src
 
 ** Make org files prettier
+
+Don't indent:
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-startup-indented nil
+      org-adapt-indentation nil)
+#+end_src
+
+Center text:
+
+#+begin_src emacs-lisp :tangle yes
+(use-package olivetti
+  :commands olivetti-mode
+  :config
+  (setq olivetti-body-width 0.7)
+  (setq olivetti-minimum-body-width 70))
+(add-hook 'org-mode-hook #'olivetti-mode)
+#+end_src
 
 Hide slashes and stars:
 
@@ -517,7 +527,7 @@ Hide slashes and stars:
   )
 #+end_src
 
-Rendering of italics is currently broken, so let's give them colour:
+Add colour to italics:
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
@@ -549,7 +559,7 @@ Expand invisible markup when editing:
   :config
   (setq org-appear-autoemphasis t
         org-appear-autosubmarkers t
-        org-appear-autolinks t)
+        org-appear-autolinks nil)
   ;; for proper first-time setup, `org-appear--set-elements'
   ;; needs to be run after other hooks have acted.
   (run-at-time nil nil #'org-appear--set-elements))
@@ -580,8 +590,9 @@ Expand invisible markup when editing:
                             ("Diamond" "$\Diamond$" nil "" "" "" "◇")
                             ("models" "$\\models$" nil "" "" "" "⊨")
                             ("vdash" "$\\vdash$" nil "" "" "" "⊢")
-                            ("llb" "$\\llbracket$" nil "" "" "" "⟦")
-                            ("rrb" "$\\rrbracket$" nil "" "" "" "⟧")
+                            ("lb" "$\\llbracket$" nil "" "" "" "⟦")
+                            ("rb" "$\\rrbracket$" nil "" "" "" "⟧")
+                            ("cent" "¢" nil "" "" "" "¢")
                            )   
         )
   )
@@ -704,6 +715,32 @@ Call ivy-bibtex with SPC n p:
  )
 #+end_src
 
+Configure new org-internal citations:
+
+#+begin_src emacs-lisp :tangle yes
+(use-package! oc
+  :after org bibtex-completion
+  :init
+  :config
+  (setq org-cite-global-bibliography
+        (let ((paths bibtex-completion-bibliography))
+          ;; Always return bibliography paths as list for org-cite.
+          (if (stringp paths) (list paths) paths)))
+  )
+#+end_src
+
+A function to update my bibtex file exported from zotero:
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-update-literature-bib-from-zotero ()
+  "export literature.bib from zotero"
+  (interactive)
+  (call-process-shell-command
+   "curl http://127.0.0.1:23119/better-bibtex/export/library?/1/library.bibtex > ~/notes/literature.bib"
+   nil 0)
+)
+#+end_src
+
 ** Zettel (org-roam)
 
 *** Basic config
@@ -723,7 +760,13 @@ Call ivy-bibtex with SPC n p:
 )
 #+end_src
 
-**** Note templates
+use timestamps as ids:
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-id-method 'ts) 
+#+end_src
+
+*** Note templates
 
 #+begin_src emacs-lisp :tangle yes
 (after! org-roam
@@ -943,6 +986,20 @@ Convert org to LaTeX
 )
 #+end_src
 
+Extract and process handout from org file
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-org2handout ()
+  (interactive)
+  (save-buffer)
+  (call-process-shell-command
+   (format "python3 /home/wo/notes/papers/org2handout.py %s"
+           (shell-quote-argument (buffer-file-name)))
+   nil 0)
+  (revert-buffer t t t)
+)
+#+end_src
+
 ** Spell-checking 
 
 Why is it so hard to set up spell-checking with multiple dictionaries?
@@ -1027,6 +1084,21 @@ Entry format in bibtex files:
 
 
 * LaTeX
+
+** Nicer writing
+
+#+begin_src emacs-lisp :tangle yes
+(add-hook 'LaTeX-mode-hook #'olivetti-mode)
+#+end_src
+
+# (add-to-list 'org-latex-classes
+#              '("woarticle"
+#                "\\documentclass{woarticle}"
+#                ("\\section{%s}" . "\\section*{%s}")
+#                ("\\subsection{%s}" . "\\subsection*{%s}")
+#                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+#                ("\\paragraph{%s}" . "\\paragraph*{%s}")
+#                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
 
 * Programming
