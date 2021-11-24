@@ -1,29 +1,195 @@
 #+TITLE: Doom emacs config
 
-I use [[https://github.com/hlissner/doom-emacs][doom emacs]] to write notes, articles, and code. This is my configuration.
+I use [[https://github.com/hlissner/doom-emacs][doom emacs]] to write notes, articles, and code, as an email client, and to
+keep track of projects and appointments. Most of this happens in org-mode.
 
-* Basics
+* General settings
 
-Speed up processing of this file:
+** Speed up processing of this file
 
 #+begin_src emacs-lisp :tangle yes
 ;;; config.el -*- lexical-binding: t; -*-
 #+end_src
 
-Personal info:
+** Personal info
 
 #+begin_src emacs-lisp :tangle yes
 (setq user-full-name "Wolfgang Schwarz"
       user-mail-address "wo@umsu.de")
 #+end_src
 
-Automatically find projects on startup:
+** Automatically find projects on startup
 
 #+begin_src emacs-lisp :tangle yes
 (setq projectile-project-search-path '("~/words/" "~/notes/" "~/programming/"))
 #+end_src
 
-* General appearance
+** Make Y yank the whole line
+
+#+begin_src emacs-lisp :tangle yes
+(evil-put-command-property 'evil-yank-line :motion 'evil-line)
+#+end_src
+
+** Partially fix broken M-RET and C-RET behaviour in org files
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-insert-heading-respect-content nil)
+#+end_src
+
+** Delete files to trash
+
+#+begin_src emacs-lisp :tangle yes
+(setq-default delete-by-moving-to-trash t)
+#+end_src
+
+** Raise undo-limit and allow fine-grained undo
+
+#+begin_src emacs-lisp :tangle yes
+(setq undo-limit 80000000
+      evil-want-fine-undo t)
+#+end_src
+
+** Fix copy and paste to terminal
+
+#+begin_src emacs-lisp :tangle yes
+(setq x-select-enable-clipboard t)
+#+end_src
+
+** Auto-save buffers, backups in ~/.emacsbup/
+
+#+begin_src emacs-lisp :tangle yes
+(auto-save-visited-mode 1)
+
+(setq backup-by-copying t      ; don't clobber symlinks
+      backup-directory-alist '(("." . "~/.emacsbup"))
+      delete-old-versions t
+      make-backup-files t
+      vc-make-backup-files t ; backup files even if version controlled
+      kept-new-versions 6
+      kept-old-versions 2
+      version-control t)       ; use versioned backups
+
+(setq auto-save-file-name-transforms
+  `((".*" "~/.emacsbup/" t)))
+#+end_src
+
+** Spell-checking 
+
+Why is it so hard to set up spell-checking with multiple dictionaries?
+
+#+begin_src emacs-lisp :tangle yes
+(setq ispell-local-dictionary "en_GB")
+(setq ispell-program-name "hunspell")
+(setq ispell-hunspell-dictionary-alist '(("de_DE"
+                                            "[[:alpha:]]"
+                                            "[^[:alpha:]]"
+                                            "['.ß-]" 'many-otherchars
+                                            ("-r" "-d" "de_DE") nil utf-8)
+                                           ("en_GB"
+                                            "[[:alpha:]]"
+                                            "[^[:alpha:]]"
+                                            "[']" nil
+                                            ("-r" "-d" "en_GB") nil utf-8)))
+;; (when (boundp 'ispell-hunspell-dictionary-alist)
+;;   (setq ispell-hunspell-dictionary-alist ispell-local-dictionary-alist))
+;; For saving words to the personal dictionary, don't infer it from
+;; the locale, otherwise it would save to ~/.hunspell_en_GB.
+(setq ispell-personal-dictionary "~/.hunspell_personal")
+;; The personal dictionary file has to exist, otherwise hunspell will
+;; silently not use it.
+#+end_src
+
+The guess-language package guesses which spellchecker to use, but I can’t get it
+to work properly.
+
+#+begin_src emacs-lisp :tangle yes
+;; (setq guess-language-langcodes
+;;   '((en . ("en_GB" "English"))
+;;     (de . ("de_DE" "German"))))
+;; (setq guess-language-languages '(en de))
+;; (add-hook 'org-mode-hook (lambda () (guess-language-mode 1)))
+#+end_src
+
+So I’m switching manually:
+
+#+begin_src emacs-lisp :tangle yes
+(defun fd-switch-dictionary()
+(interactive)
+(let* ((dic ispell-current-dictionary)
+    (change (if (string= dic "deutsch8") "english" "deutsch8")))
+(ispell-change-dictionary change)
+(message "Dictionary switched from %s to %s" dic change)
+))
+
+(global-set-key (kbd "<f9>")   'fd-switch-dictionary)
+#+end_src
+
+** Turn off smartparens
+
+I get confused by automatically inserted closing brackets and parentheses.
+
+#+begin_src emacs-lisp :tangle yes
+(remove-hook 'doom-first-buffer-hook #'smartparens-global-mode)
+#+end_src
+
+** A function to rename the current file and buffer
+
+from [[https://stackoverflow.com/questions/12634850/how-to-rename-a-file-by-editing-its-current-name][stackoverflow]]:
+
+#+begin_src emacs-lisp :tangle yes
+(defun rename-file-and-buffer ()
+  "Renames current buffer and file it is visiting."
+  (interactive)
+  (let ((name (buffer-name))
+        (filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (message "Buffer '%s' is not visiting a file!" name)
+      (let ((new-name (read-file-name "New name: " filename)))
+        (cond ((get-buffer new-name)
+               (message "A buffer named '%s' already exists!" new-name))
+              (t
+               (rename-file name new-name 1)
+               (rename-buffer new-name)
+               (set-visited-file-name new-name)
+               (set-buffer-modified-p nil)))))))
+#+end_src
+
+* Appearance
+
+** Start in fullscreen
+
+#+begin_src emacs-lisp :tangle yes
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+#+end_src
+
+** Open org files folded
+
+Show only headings on opening:
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-startup-folded 'content)
+#+end_src
+
+** Increase line-spacing
+
+#+begin_src emacs-lisp :tangle yes
+(setq-default line-spacing 0.2)
+#+end_src
+
+** Show/hide absolute or relative line numbers
+
+I'm going back and forth between relative line numbers and no line numbers.
+
+#+begin_src emacs-lisp :tangle yes
+(setq display-line-numbers-type nil)
+;(setq display-line-numbers-type 'relative)
+#+end_src
+
+** Show word count
+
+#+begin_src emacs-lisp :tangle yes
+(setq doom-modeline-enable-word-count t)
+#+end_src
 
 ** Theme and font
 
@@ -52,108 +218,7 @@ Automatically find projects on startup:
   )
 #+end_src
 
-
-** Increase line-spacing
-
-#+begin_src emacs-lisp :tangle yes
-(setq-default line-spacing 0.2)
-#+end_src
-
-** Line numbers
-
-I'm going back and forth between relative line numbers and no line numbers.
-
-#+begin_src emacs-lisp :tangle yes
-(setq display-line-numbers-type nil)
-;(setq display-line-numbers-type 'relative)
-#+end_src
-
-** Show word count
-
-#+begin_src emacs-lisp :tangle yes
-(setq doom-modeline-enable-word-count t)
-#+end_src
-
-** Start fullscreen
-
-#+begin_src emacs-lisp :tangle yes
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-#+end_src
-
-** Keyboard shortcut for closing other windows
-
-Close other windows with SPC w 1:
-#+begin_src emacs-lisp :tangle yes
-(map!
- :map evil-window-map
-  :desc "close other windows"  "1" 'delete-other-windows
-  )
-#+end_src
-
-
-* Snippets and auto-complete
-
-Snippets are useful.
-
-#+begin_src emacs-lisp :tangle yes
-(setq yas-snippet-dirs '("~/.doom.d/snippets"))
-#+end_src
-
-Allow inserting in edit mode:
-
-#+begin_src emacs-lisp :tangle yes
-(map! :desc "insert snippet" "C-s" #'yas-insert-snippet)
-#+end_src
-
-I've started to play around with abbrev-mode as well.
-
-#+begin_src emacs-lisp :tangle yes
-(use-package abbrev
-  :init
-  (setq-default abbrev-mode t)
-  :commands abbrev-mode
-  :config
-  (setq abbrev-file-name (expand-file-name "abbrev.el" doom-private-dir))
-  (setq save-abbrevs 'silently)
-  )
-#+end_src
-
-Configure the autocomplete popup:
-
-#+begin_src emacs-lisp :tangle yes
-(after! company
-  (setq company-idle-delay 0.8
-        company-minimum-prefix-length 1)
-  (setq company-show-numbers t)
-  ;; only autocomplete words, not numerals:
-  (setq company-dabbrev-char-regexp "[A-z:-]")
-  (add-hook 'evil-normal-state-entry-hook #'company-abort) ;; make aborting less annoying.
-)
-#+end_src
-
-Enable autocomplete for yasnippets:
-
-#+begin_src emacs-lisp :tangle yes
-(after! anaconda-mode
-  (set-company-backend! 'anaconda-mode '(company-anaconda company-yasnippet))
-  )
-#+end_src
-
-company-math looks interesting, but I can't get it to work.
-
-#+begin_src emacs-lisp :tangle no
-;; (use-package! company-math
-;;     :config
-;;     ;(add-to-list 'company-backends 'company-math-symbols-latex)
-;;     (add-to-list 'company-backends 'company-math-symbols-unicode)
-;;     (setq company-math-allow-latex-symbols-in-faces t)
-;;     (setq company-tooltip-align-annotations t))
-#+end_src
-
-
-* General org-mode tweaks
-
-** Prettier org symbols
+** Prettier org bullets
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
@@ -162,26 +227,224 @@ company-math looks interesting, but I can't get it to work.
   )
 #+end_src
 
-** Start-up folded
+** Center org files, and don't indent
 
-Show only headings on opening:
-
-#+begin_src emacs-lisp :tangle yes
-(setq org-startup-folded 'content)
-#+end_src
-
-** Prevent editing hidden text:
+Don't indent:
 
 #+begin_src emacs-lisp :tangle yes
-(setq org-catch-invisible-edits 'error)
+(setq org-startup-indented nil
+      org-adapt-indentation nil)
 #+end_src
 
-** Partially fix M-RET and C-RET behaviour that's broken in doom
+Center text:
 
 #+begin_src emacs-lisp :tangle yes
-(setq org-insert-heading-respect-content nil)
+(use-package olivetti
+  :commands olivetti-mode
+  :config
+  (setq olivetti-body-width 0.7)
+  (setq olivetti-minimum-body-width 70))
+(add-hook 'org-mode-hook #'olivetti-mode)
 #+end_src
 
+** Hide emphasis and sub/superscript markers
+
+Hide slashes and stars:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-hide-emphasis-markers t)
+  )
+#+end_src
+
+Add colour to italics:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (add-to-list 'org-emphasis-alist '("/" (italic :foreground "#dddd99")))
+  )
+#+end_src
+
+Properly display sub- and superscripts:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-pretty-entities-include-sub-superscripts t)
+  )
+#+end_src
+
+** Expand invisible markup when editing
+
+#+begin_src emacs-lisp :tangle yes
+(use-package! org-appear
+  :hook (org-mode . org-appear-mode)
+  :config
+  (setq org-appear-autoemphasis t
+        org-appear-autosubmarkers t
+        org-appear-autolinks nil)
+  ;; for proper first-time setup, `org-appear--set-elements'
+  ;; needs to be run after other hooks have acted.
+  (run-at-time nil nil #'org-appear--set-elements))
+#+end_src
+
+** Render LaTeX commands for special characters as unicode
+
+This way, I can simply type LaTeX commands like \forall or \cent or \aleph to insert the
+relevant symbols:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-pretty-entities t)
+  )
+#+end_src
+
+Some symbols I often use aren't standardly recognised by org-pretty-entities.
+But we can add them: 
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-entities-user '(
+                            ("bot" "\\bot" nil "" "" "" "⊥")
+                            ("top" "\⊤" nil "" "" "" "⊤")
+                            ("box" "$\\box$" nil "" "" "" "□")
+                            ("diamond" "$\\diamond$" nil "" "" "" "◇")
+                            ("Box" "$\\Box$" nil "" "" "" "□")
+                            ("Diamond" "$\Diamond$" nil "" "" "" "◇")
+                            ("boxright" "$\\boxright$" nil "" "" "" "□→")
+                            ("models" "$\\models$" nil "" "" "" "⊨")
+                            ("vdash" "$\\vdash$" nil "" "" "" "⊢")
+                            ("llb" "$\\llbracket$" nil "" "" "" "⟦")
+                            ("rrb" "$\\rrbracket$" nil "" "" "" "⟧")
+                           )   
+        )
+  )
+#+end_src
+
+** LaTeX preview in org buffers
+
+Preview LaTeX environments in org buffers, mostly adapted from [[https://tecosaur.github.io/emacs-config/config.html][tecosaur]]:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-preview-latex-image-directory "~/.org/ltxpng/")
+  ; cdlatex allows, among other things, inserting latex environments with C-c {:
+  (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+  ; toggle LaTeX preview as cursor moves in/out:
+  (add-hook 'org-mode-hook 'org-fragtog-mode)
+  ; make LaTex snippets look better:
+  (setq org-highlight-latex-and-related '(native script entities))
+)
+#+end_src
+
+Customize rendering of LaTeX fragments:
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-format-latex-header "\\documentclass{article}
+\\usepackage[usenames]{xcolor}
+
+\\usepackage[T1]{fontenc}
+\\usepackage{mathtools}
+\\usepackage{textcomp,txfonts,latexsym,amssymb}
+\\usepackage[makeroom]{cancel}
+\\usepackage{qtree}
+\\usepackage{booktabs}
+\\newcommand{\\sem}[2][]{\\mbox{$[\\![ \#2 ]\\!]^{\#1}$}}
+
+\\pagestyle{empty}
+\\setlength{\\textwidth}{\\paperwidth}
+\\addtolength{\\textwidth}{-3cm}
+\\setlength{\\oddsidemargin}{1.5cm}
+\\addtolength{\\oddsidemargin}{-2.54cm}
+\\setlength{\\evensidemargin}{\\oddsidemargin}
+\\setlength{\\textheight}{\\paperheight}
+\\addtolength{\\textheight}{-\\headheight}
+\\addtolength{\\textheight}{-\\headsep}
+\\addtolength{\\textheight}{-\\footskip}
+\\addtolength{\\textheight}{-3cm}
+\\setlength{\\topmargin}{1.5cm}
+\\addtolength{\\topmargin}{-2.54cm}
+\\usepackage{arev}
+\\usepackage{arevmath}")
+#+end_src
+
+Make background transparent and scale font-size up a little:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.2))
+  (setq org-format-latex-options (plist-put org-format-latex-options :background "Transparent"))
+)
+#+end_src
+
+* Snippets and auto-complete
+
+** Snippets
+
+Snippets are useful for quickly inserting environments, complex logic
+expressions and the like. (C-s brings up the menu of predefined snippets, as per
+[[*Keyboard shortcuts][below]]; M-x yas-new-snippet creates a new snippet.)
+
+#+begin_src emacs-lisp :tangle yes
+(setq yas-snippet-dirs '("~/.doom.d/snippets"))
+#+end_src
+
+# To insert simple logic symbols as unicode characters I use abbrev-mode.
+# For examples, when I write 'zbox ' this is automatically converted into '□'.
+
+# #+begin_src emacs-lisp :tangle yes
+# (defun no-space-after ()
+#   "prevent inserting the whitespace character that triggered expansion"
+#   t)
+# (put 'no-space-after 'no-self-insert t)
+
+# (use-package abbrev
+#   :init
+#   (setq-default abbrev-mode t)
+#   :commands abbrev-mode
+#   :config
+#   (define-abbrev-table 'global-abbrev-table '(
+#     ("zbot" "⊥" no-space-after 1)
+#     ("ztop" "⊤" no-space-after 1)
+#     ("zbox" "□" no-space-after 1)
+#     ("zdiamond" "◇" no-space-after 1)
+#     ("zboxright" "□→" no-space-after 1)
+#     ("zmodels" "⊨" no-space-after 1)
+#     ("zvdash" "⊢" no-space-after 1)
+#     ("zcent" "¢" no-space-after 1)
+#   ))
+# )
+# #+end_src
+
+** Auto-complete
+
+The company package suggests completions for words. I rarely use this.
+
+#+begin_src emacs-lisp :tangle yes
+(after! company
+  (setq company-idle-delay 0.5
+        company-minimum-prefix-length 1)
+  (setq company-show-numbers t)
+  ;; only autocomplete words, not numerals:
+  (setq company-dabbrev-char-regexp "[A-z:-]")
+  ;; make aborting less annoying:
+  (add-hook 'evil-normal-state-entry-hook #'company-abort)
+)
+#+end_src
+
+# company-math allows inserting (some) unicode characters by their latex commands.
+# So if I want to insert (say) the cent symbol ¢, I press \, wait half a second,
+# then start typing 'cent'.
+
+# #+begin_src emacs-lisp :tangle no
+# (use-package! company-math
+#   ;; :after (:any org-mode TeX-mode)
+#   :config
+#     ;(add-to-list 'company-backends 'company-math-symbols-latex)
+#     (add-to-list 'company-backends 'company-math-symbols-unicode)
+#     (setq company-math-allow-unicode-symbols-in-faces t)
+#     (setq company-math-allow-latex-symbols-in-faces t)
+#     (setq company-tooltip-align-annotations t))
+# #+end_src
 
 * Org project management and agenda
 
@@ -196,7 +459,7 @@ directories, but they are all symlinked to my ~/org directory.
   )
 #+end_src
 
-** Quick access to org files
+** Quick access to project files
 
 I use SPC / to quickly access the project files. (This doesn't seem work if
 ~/org is a git repository because then symlinks are ignored.)
@@ -204,7 +467,7 @@ I use SPC / to quickly access the project files. (This doesn't seem work if
 #+begin_src emacs-lisp :tangle yes
 (map!
  :leader
- :desc "open ~/org file" "/"  '(lambda () (interactive) (counsel-find-file "~/org/"))
+ :desc "open ~/org file" "/"  '(lambda () (interactive) (ido-find-file-in-dir "~/org/"))
  )
 #+end_src
 
@@ -231,21 +494,6 @@ than D. So I use D-G priorities.
 (after! org
   (setq org-lowest-priority ?G)
   )
-#+end_src
-
-** Key bindings
-
-I often insert inactive timestamps to document when an event/conversation took
-place, and I don't want to enter normal mode and press SPC m d T each time.
-
-#+begin_src emacs-lisp :tangle yes
-(map! :after org
-      :map org-mode-map
-      "C-c ," nil
-)
-(map!
-   :desc "insert inactive timestamp" "C-c ," #'org-time-stamp-inactive
-)
 #+end_src
 
 ** Refiling
@@ -433,18 +681,6 @@ Display UK bank holidays only (from https://emacs.stackexchange.com/questions/44
 
 #+end_src
 
-
-* Org capture
-
-I use org-capture all the time:
-
-#+begin_src emacs-lisp :tangle yes
-(map!
- :leader
- :desc "org-capture" "x" #'org-capture
- )
-#+end_src
-
 ** Capture templates
 
 #+begin_src emacs-lisp :tangle yes
@@ -474,8 +710,7 @@ I use org-capture all the time:
   )
 #+end_src
 
-
-* Writing with org
+* Writing in org-mode
 
 ** Writeroom mode
 
@@ -489,247 +724,113 @@ Distraction-free prose writing. This comes from the :ui zen module.
  )
 #+end_src
 
-** Line-breaks
+** Automatic line-breaks?
 
-I like automatic line breaks when I write prose:
-
-#+begin_src emacs-lisp :tangle yes
-(after! org
-  (add-hook 'org-mode-hook #'auto-fill-mode)
-)
-#+end_src
-
-** Make org files prettier
-
-Don't indent:
+I sometimes like automatic line breaks when I write prose:
 
 #+begin_src emacs-lisp :tangle yes
-(setq org-startup-indented nil
-      org-adapt-indentation nil)
-#+end_src
-
-Center text:
-
-#+begin_src emacs-lisp :tangle yes
-(use-package olivetti
-  :commands olivetti-mode
-  :config
-  (setq olivetti-body-width 0.7)
-  (setq olivetti-minimum-body-width 70))
-(add-hook 'org-mode-hook #'olivetti-mode)
-#+end_src
-
-Hide slashes and stars:
-
-#+begin_src emacs-lisp :tangle yes
-(after! org
-  (setq org-hide-emphasis-markers t)
-  )
-#+end_src
-
-Add colour to italics:
-
-#+begin_src emacs-lisp :tangle yes
-(after! org
-  (add-to-list 'org-emphasis-alist '("/" (italic :foreground "#dddd99")))
-  )
-#+end_src
-
-Display LaTeX symbols as UTF characters:
-
-#+begin_src emacs-lisp :tangle yes
-(after! org
-  (setq org-pretty-entities t)
-  )
-#+end_src
-
-Properly display sub- and superscripts:
-
-#+begin_src emacs-lisp :tangle yes
-(after! org
-  (setq org-pretty-entities-include-sub-superscripts t)
-  )
-#+end_src
-
-Expand invisible markup when editing:
-
-#+begin_src emacs-lisp :tangle yes
-(use-package! org-appear
-  :hook (org-mode . org-appear-mode)
-  :config
-  (setq org-appear-autoemphasis t
-        org-appear-autosubmarkers t
-        org-appear-autolinks nil)
-  ;; for proper first-time setup, `org-appear--set-elements'
-  ;; needs to be run after other hooks have acted.
-  (run-at-time nil nil #'org-appear--set-elements))
-#+end_src
-
-#+begin_src emacs-lisp :tangle yes
-;; (add-hook! 'org-mode-hook #'+org-pretty-mode
-#+end_src
-
-# Nicer typography with typo-mode:
-
-# #+begin_src emacs-lisp :tangle yes
-# (typo-global-mode 1)
-# (add-hook 'org-mode-hook 'typo-mode)
-# #+end_src
-
-** Custom mapping from LaTeX code to UTF8 characters
-
-#+begin_src emacs-lisp :tangle yes
-(after! org
-  (setq org-entities-user '(
-                            ("bot" "\\bot" nil "" "" "" "⊥")
-                            ("top" "\⊤" nil "" "" "" "⊤")
-                            ("box" "$\\box$" nil "" "" "" "□")
-                            ("boxright" "$\\boxright$" nil "" "" "" "□→")
-                            ("diamond" "$\\diamond$" nil "" "" "" "◇")
-                            ("Box" "$\\Box$" nil "" "" "" "□")
-                            ("Diamond" "$\Diamond$" nil "" "" "" "◇")
-                            ("models" "$\\models$" nil "" "" "" "⊨")
-                            ("vdash" "$\\vdash$" nil "" "" "" "⊢")
-                            ("lb" "$\\llbracket$" nil "" "" "" "⟦")
-                            ("rb" "$\\rrbracket$" nil "" "" "" "⟧")
-                            ("cent" "¢" nil "" "" "" "¢")
-                           )   
-        )
-  )
-#+end_src
-
-** LaTeX preview
-
-LaTeX preview in org, mostly adapted from [[https://tecosaur.github.io/emacs-config/config.html][tecosaur]].
-
-#+begin_src emacs-lisp :tangle yes
-(after! org
-  (setq org-preview-latex-image-directory "~/.org/ltxpng/")
-  ; cdlatex allows, among other things, inserting latex environments with C-c {:
-  (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
-  ; toggle LaTeX preview as cursor moves in/out:
-  (add-hook 'org-mode-hook 'org-fragtog-mode)
-  ; make LaTex snippets look better:
-  (setq org-highlight-latex-and-related '(native script entities))
-)
-#+end_src
-
-Customize rendering of LaTeX fragments:
-
-#+begin_src emacs-lisp :tangle yes
-(setq org-format-latex-header "\\documentclass{article}
-\\usepackage[usenames]{xcolor}
-
-\\usepackage[T1]{fontenc}
-\\usepackage{mathtools}
-\\usepackage{textcomp,txfonts,latexsym,amssymb}
-\\usepackage[makeroom]{cancel}
-\\usepackage{qtree}
-\\usepackage{booktabs}
-\\newcommand{\\sem}[2][]{\\mbox{$[\\![ \#2 ]\\!]^{\#1}$}}
-
-\\pagestyle{empty}
-\\setlength{\\textwidth}{\\paperwidth}
-\\addtolength{\\textwidth}{-3cm}
-\\setlength{\\oddsidemargin}{1.5cm}
-\\addtolength{\\oddsidemargin}{-2.54cm}
-\\setlength{\\evensidemargin}{\\oddsidemargin}
-\\setlength{\\textheight}{\\paperheight}
-\\addtolength{\\textheight}{-\\headheight}
-\\addtolength{\\textheight}{-\\headsep}
-\\addtolength{\\textheight}{-\\footskip}
-\\addtolength{\\textheight}{-3cm}
-\\setlength{\\topmargin}{1.5cm}
-\\addtolength{\\topmargin}{-2.54cm}
-\\usepackage{arev}
-\\usepackage{arevmath}")
-#+end_src
-
-Make background transparent and scale font-size up a little:
-
-#+begin_src emacs-lisp :tangle yes
-(after! org
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.2))
-  (setq org-format-latex-options (plist-put org-format-latex-options :background "Transparent"))
-)
+;; (after! org
+;;   (add-hook 'org-mode-hook #'auto-fill-mode)
+;; )
 #+end_src
 
 ** Citations
 
-configure org-ref:
+Citation management used to be a mess. Now it's fairly easy with the new
+org-internal citation format and the citar package.
+
+# configure org-ref:
 
 #+begin_src emacs-lisp :tangle yes
-(use-package! org-ref
-  :after org
-  :config
-  (setq
-   ;; org-ref-default-bibliography '("/home/wo/notes/literature.bib")
-   ;; org-ref-pdf-directory  "/home/wo/papers/[A-Z]/"
-   ;; org-ref-notes-directory "~/notes/literature"
-   ;; org-ref-notes-function 'orb-edit-notes
-   org-ref-show-broken-links nil ;; speed up agenda generation
-   ;; bugfix: allow opening pdf at point
-   org-ref-get-pdf-filename-function (lambda (key) (car (bibtex-completion-find-pdf key)))
-   org-ref-completion-library 'org-ref-ivy-cite
-   org-ref-default-citation-link "citep"
+;; (use-package! org-ref
+;;   :after org
+;;   :config
+;;   (setq
+;;    ;; org-ref-default-bibliography '("/home/wo/notes/literature.bib")
+;;    ;; org-ref-pdf-directory  "/home/wo/papers/[A-Z]/"
+;;    ;; org-ref-notes-directory "~/notes/literature"
+;;    ;; org-ref-notes-function 'orb-edit-notes
+;;    org-ref-show-broken-links nil ;; speed up agenda generation
+;;    ;; bugfix: allow opening pdf at point
+;;    org-ref-get-pdf-filename-function (lambda (key) (car (bibtex-completion-find-pdf key)))
+;;    org-ref-completion-library 'org-ref-ivy-cite
+;;    org-ref-default-citation-link "citep"
+;;   )
+;; )
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+;; (after! org-ref
+;;   (use-package! ivy-bibtex
+;;     :config
+;;     (setq
+;;      bibtex-completion-bibliography "~/notes/literature.bib"
+;;      bibtex-completion-library-path "~/papers/[A-Z]/"
+;;      bibtex-completion-notes-path "~/notes/literature/"
+;;      bibtex-completion-pdf-field "file"
+;;      bibtex-completion-pdf-symbol "⌘"
+;;      bibtex-completion-notes-symbol "✎"
+;;      )
+;;   )
+;; )
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+;; (org-link-set-parameters
+;;  "cite"
+;;  :display 'org-link)
+#+end_src
+
+# I don't want to enter normal mode just to insert a reference:
+
+# #+begin_src emacs-lisp :tangle yes
+# (map!
+#  :desc "insert citation" "C-c c" #'org-ref-insert-link
+#  )
+# #+end_src
+
+# Call ivy-bibtex with SPC n p:
+
+# #+begin_src emacs-lisp :tangle yes
+# (map!
+#  :leader
+#  :desc "open bibliography database (ivy-bibtex)" "n p" #'ivy-bibtex
+#  )
+# #+end_src
+
+#+begin_src emacs-lisp :tangle yes
+;; (use-package citar
+;;   :bind (("C-c c" . citar-insert-citation)
+;;          :map minibuffer-local-map
+;;          ("M-b" . citar-insert-preset))
+;;   :custom
+;;   (citar-bibliography '("~/notes/literature.bib")))
+#+end_src
+
+Configure citar:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org-roam
+  (setq citar-bibliography '("~/notes/literature.bib")
+        org-cite-global-bibliography '("~/notes/literature.bib")
+        citar-library-paths '("~/papers/[A-Z]/")
+        citar-notes-paths '("~/notes/literature/")
+        citar-file-open-prompt t
+        org-cite-insert-processor 'citar
+        org-cite-follow-processor 'citar
+        org-cite-activate-processor 'citar
+        org-support-shift-select t
+        ;; include property drawer metadata for 'org-roam' v2 in literature notes:
+        citar-file-note-org-include '(org-id org-roam-ref)
+        )
   )
-)
-#+end_src
-
-#+begin_src emacs-lisp :tangle yes
-(after! org-ref
-  (use-package! ivy-bibtex
-    :config
-    (setq
-     bibtex-completion-bibliography "~/notes/literature.bib"
-     bibtex-completion-library-path "~/papers/[A-Z]/"
-     bibtex-completion-notes-path "~/notes/literature/"
-     bibtex-completion-pdf-field "file"
-     bibtex-completion-pdf-symbol "⌘"
-     bibtex-completion-notes-symbol "✎"
-     )
-  )
-)
-#+end_src
-
-#+begin_src emacs-lisp :tangle yes
-(org-link-set-parameters
- "cite"
- :display 'org-link)
-#+end_src
-
-I don't want to enter normal mode just to insert a reference:
-
-#+begin_src emacs-lisp :tangle yes
-(map!
- :desc "insert citation" "C-c c" #'org-ref-insert-link
- )
-#+end_src
-
-Call ivy-bibtex with SPC n p:
-
-#+begin_src emacs-lisp :tangle yes
-(map!
- :leader
- :desc "open bibliography database (ivy-bibtex)" "n p" #'ivy-bibtex
- )
-#+end_src
-
-Configure new org-internal citations:
-
-#+begin_src emacs-lisp :tangle yes
-(use-package! oc
-  :after org bibtex-completion
-  :init
-  :config
-  (setq org-cite-global-bibliography
-        (let ((paths bibtex-completion-bibliography))
-          ;; Always return bibliography paths as list for org-cite.
-          (if (stringp paths) (list paths) paths)))
+(after! citar
+  ;; template for literature notes:
+  (add-to-list 'citar-templates '(note . "#+title: ${author editor} ${date year issued:4} ${title}"))
   )
 #+end_src
 
-A function to update my bibtex file exported from zotero:
+** A function to update the references database from zotero
 
 #+begin_src emacs-lisp :tangle yes
 (defun my-update-literature-bib-from-zotero ()
@@ -738,12 +839,43 @@ A function to update my bibtex file exported from zotero:
   (call-process-shell-command
    "curl http://127.0.0.1:23119/better-bibtex/export/library?/1/library.bibtex > ~/notes/literature.bib"
    nil 0)
+  (citar-refresh)
 )
 #+end_src
 
-** Zettel (org-roam)
+** A function for inserting links to headings
 
-*** Basic config
+I use links by custom_id to refer to section headings. The following code lets
+me insert such links from a list of custom_ids currently in the buffer. (This is
+bound to C-c l.)
+
+#+begin_src emacs-lisp :tangle yes
+(defun matches-in-buffer (regexp &optional buffer)
+  "return a list of matches of REGEXP in BUFFER or the current buffer if not given."
+  (let ((matches))
+    (save-match-data
+      (save-excursion
+        (with-current-buffer (or buffer (current-buffer))
+          (save-restriction
+            (widen)
+            (goto-char 1)
+            (while (search-forward-regexp regexp nil t 1)
+              (push (match-string 1) matches)))))
+      matches)))
+
+(defun my-insert-custom-id-link ()
+  "choose from a CUSTOM_ID in the file and insert link to it"""
+  (interactive)
+  (let* ((custom-id (completing-read
+                     "Custom ID: "
+                     (matches-in-buffer "^[ \t]*:CUSTOM_ID:[ \t]+\\(\\S-+\\)[ \t]*$"))))
+    (when custom-id
+      (org-insert-link nil (concat "#" custom-id) custom-id))))
+#+end_src
+
+* Zettel (org-roam)
+
+** Basic config
 
 #+begin_src emacs-lisp :tangle yes
 (setq org-roam-v2-ack t)
@@ -751,30 +883,30 @@ A function to update my bibtex file exported from zotero:
 (after! org-roam
   (add-hook 'after-init-hook 'org-roam-mode)
 )
-(use-package! org-roam-bibtex
-  :after org-roam
-  :load-path "~/notes/literature.bib"
-  :hook (org-roam-mode . org-roam-bibtex-mode)
-  :config
-  (require 'org-ref)
-)
+;(use-package! org-roam-bibtex
+;  :after org-roam
+;  :load-path "~/notes/literature.bib"
+;  :hook (org-roam-mode . org-roam-bibtex-mode)
+;  :config
+;  (require 'org-ref)
+;)
 #+end_src
 
-use timestamps as ids:
+** Use timestamps as ids
 
 #+begin_src emacs-lisp :tangle yes
 (setq org-id-method 'ts) 
 #+end_src
 
-*** Note templates
+** Note templates
 
 #+begin_src emacs-lisp :tangle yes
 (after! org-roam
 
-  (setq orb-preformat-keywords
-        '("citekey" "title" "year" "author-or-editor" "file")
-        orb-process-file-keyword t
-        orb-file-field-extensions '("pdf"))
+  ;; (setq orb-preformat-keywords
+  ;;       '("citekey" "title" "year" "author-or-editor" "file")
+  ;;       orb-process-file-keyword t
+  ;;       orb-file-field-extensions '("pdf"))
   
   (setq org-roam-capture-templates
         (list
@@ -790,46 +922,14 @@ use timestamps as ids:
            :if-new (file+head "papers/%<%Y>-${slug}.org"
                     "#+TITLE: ${title}\n\n")
            :unnarrowed t)
-         '("l" "literature note" plain "%?"
-          :if-new (file+head "literature/${citekey}.org"
-                             "#+TITLE: ${author-or-editor} ${year} ${title}\n")
+         ;; '("l" "literature note" plain "%?"
+         ;;  :if-new (file+head "literature/${citekey}.org"
+         ;;                     "#+TITLE: ${author-or-editor} ${year} ${title}\n")
         ))
   )
-)
 #+end_src
 
-*** Key bindings
-
-#+begin_src emacs-lisp :tangle yes
-(after! org-roam
-  (map! :leader
-        :prefix "n"
-        :desc "org-roam-buffer-toggle" "r" #'org-roam-buffer-toggle
-        :desc "org-roam-node-insert" "i" #'org-roam-node-insert
-        :desc "org-roam-node-find" "f" #'org-roam-node-find
-        :desc "org-roam-show-graph" "g" #'org-roam-show-graph
-        :desc "org-roam-capture" "c" #'org-roam-capture
-        )
-  )
-#+end_src
-
-I don't want to enter normal mode just to insert a link to another note:
-
-#+begin_src emacs-lisp :tangle yes
-(defun my-insert-link-to-note ()
-  "insert link to org node and prompt for link text"
-  (interactive)
-  (org-roam-node-insert)
-  (call-interactively #'org-insert-link)
-  )
-(after! org-roam
-  (map!
-   :desc "insert link to node" "C-c i" #'my-insert-link-to-note
-   )
-)
-#+end_src
-
-*** Tags
+** Tags
 
 Emulate subdirectories-as-tags behaviour from v1:
 
@@ -842,18 +942,7 @@ Emulate subdirectories-as-tags behaviour from v1:
 (setq org-roam-node-display-template "${directories:10} ${title:*} ${tags:10}")
 #+end_src
 
-Key bindings for adding and removing tags:
-
-#+begin_src emacs-lisp :tangle yes
-(map!
- :leader
- :prefix "n"
- :desc "add org-roam tag" "t" #'org-roam-tag-add
- :desc "remove org-roam tag" "T" #'org-roam-tag-remove
-)
-#+end_src
-
-*** Deft
+** Deft
 
 For searching through notes.
 
@@ -884,9 +973,9 @@ fix keybindings in deft window (https://github.com/hlissner/doom-emacs/issues/29
         :n "q"   #'kill-current-buffer)
 #+end_src
 
-*** Change title -- update buffer name, filename, and links
+** A function to change the note title
 
-From https://org-roam.discourse.group/t/does-renaming-title-no-longer-renames-the-filename/2018/2
+This updates the buffer name, filename, and links. (From [[https://org-roam.discourse.group/t/does-renaming-title-no-longer-renames-the-filename/2018/2][the org-roam discourse group]].)
 
 #+begin_src emacs-lisp :tangle yes
   (defun my-org-roam-change-title ()
@@ -922,9 +1011,9 @@ From https://org-roam.discourse.group/t/does-renaming-title-no-longer-renames-th
               (kill-buffer)))))))
 #+end_src
 
-*** Convert LaTeX notes to org
+** A function to convert LaTeX notes to org format
 
-This function replaces the content of the current buffer
+This function replaces the content of the current buffer.
 
 #+begin_src emacs-lisp :tangle yes
 (defun my-tex2org ()
@@ -944,9 +1033,11 @@ This function replaces the content of the current buffer
    ; show error buffer:
    t))
 #+end_src
-** Blog posts
 
- Convert blog posts to HTML and submit to server
+** Functions to submit and update blog posts
+
+I write my blog posts as org-roam notes. This function converts a note to HTML
+and submits it to my server. If the relevant post already exists, it updates it.
 
 #+begin_src emacs-lisp :tangle yes
 (defun my-post-to-server ()
@@ -959,6 +1050,8 @@ This function replaces the content of the current buffer
 )
 #+end_src
 
+This function only updates the tags associated with the current post.
+
 #+begin_src emacs-lisp :tangle yes
 (defun my-update-tags-on-server ()
   (interactive)
@@ -970,23 +1063,23 @@ This function replaces the content of the current buffer
 )
 #+end_src
 
-** Papers
+** Functions to convert org notes into PDF papers or handouts
 
-Convert org to LaTeX
+Convert org to LaTeX and PDF and open the PDF:
 
 #+begin_src emacs-lisp :tangle yes
-(defun my-org2tex ()
+(defun my-org2paper ()
   (interactive)
   (save-buffer)
-  (call-process-shell-command
-   (format "python3 /home/wo/notes/papers/org2tex.py %s"
+  (shell-command
+   (format "python3 /home/wo/notes/papers/org2paper.py %s"
            (shell-quote-argument (buffer-file-name)))
    nil 0)
   (revert-buffer t t t)
 )
 #+end_src
 
-Extract and process handout from org file
+Extract and process handout:
 
 #+begin_src emacs-lisp :tangle yes
 (defun my-org2handout ()
@@ -1000,63 +1093,125 @@ Extract and process handout from org file
 )
 #+end_src
 
-** Spell-checking 
+* Key bindings
 
-Why is it so hard to set up spell-checking with multiple dictionaries?
-
-#+begin_src emacs-lisp :tangle yes
-(setq ispell-local-dictionary "en_GB")
-(setq ispell-program-name "hunspell")
-(setq ispell-hunspell-dictionary-alist '(("de_DE"
-                                            "[[:alpha:]]"
-                                            "[^[:alpha:]]"
-                                            "['.ß-]" 'many-otherchars
-                                            ("-r" "-d" "de_DE") nil utf-8)
-                                           ("en_GB"
-                                            "[[:alpha:]]"
-                                            "[^[:alpha:]]"
-                                            "[']" nil
-                                            ("-r" "-d" "en_GB") nil utf-8)))
-;; (when (boundp 'ispell-hunspell-dictionary-alist)
-;;   (setq ispell-hunspell-dictionary-alist ispell-local-dictionary-alist))
-;; For saving words to the personal dictionary, don't infer it from
-;; the locale, otherwise it would save to ~/.hunspell_en_GB.
-(setq ispell-personal-dictionary "~/.hunspell_personal")
-;; The personal dictionary file has to exist, otherwise hunspell will
-;; silently not use it.
-#+end_src
-
-The guess-language package guesses which spellchecker to use, but I can’t get it
-to work properly.
+** Close other windows with SPC w 1
 
 #+begin_src emacs-lisp :tangle yes
-;; (setq guess-language-langcodes
-;;   '((en . ("en_GB" "English"))
-;;     (de . ("de_DE" "German"))))
-;; (setq guess-language-languages '(en de))
-;; (add-hook 'org-mode-hook (lambda () (guess-language-mode 1)))
+(map!
+ :map evil-window-map
+  :desc "close other windows"  "1" 'delete-other-windows
+  )
 #+end_src
 
-So I’m switching manually:
+** Insert inactive timestamps in edit mode
+
+I often insert inactive timestamps to document when an event/conversation took
+place, and I don't want to enter normal mode and press SPC m d T each time.
 
 #+begin_src emacs-lisp :tangle yes
-(defun fd-switch-dictionary()
-(interactive)
-(let* ((dic ispell-current-dictionary)
-    (change (if (string= dic "deutsch8") "english" "deutsch8")))
-(ispell-change-dictionary change)
-(message "Dictionary switched from %s to %s" dic change)
-))
-
-(global-set-key (kbd "<f9>")   'fd-switch-dictionary)
+(map! :after org
+      :map org-mode-map
+      "C-c ," nil
+)
+(map!
+   :desc "insert inactive timestamp" "C-c ," #'org-time-stamp-inactive
+)
 #+end_src
 
-** Turn off smartparens
+** Call org-capture
+
+I use org-capture all the time to enter todo items or update logbook.org.
 
 #+begin_src emacs-lisp :tangle yes
-(remove-hook 'doom-first-buffer-hook #'smartparens-global-mode)
+(map!
+ :leader
+ :desc "org-capture" "x" #'org-capture
+ )
 #+end_src
 
+** General org-roam functions
+
+#+begin_src emacs-lisp :tangle yes
+(after! org-roam
+  (map! :leader
+        :prefix "n"
+        :desc "org-roam-buffer-toggle" "r" #'org-roam-buffer-toggle
+        :desc "org-roam-node-insert" "i" #'org-roam-node-insert
+        :desc "org-roam-node-find" "f" #'org-roam-node-find
+        :desc "org-roam-show-graph" "g" #'org-roam-show-graph
+        :desc "org-roam-capture" "c" #'org-roam-capture
+        )
+  )
+#+end_src
+
+** Open/create org-roam literature note
+
+#+begin_src emacs-lisp :tangle yes
+(map!
+ :leader
+ :desc "open org note for literature item" "n e" #'citar-open-notes
+ )
+#+end_src
+
+** Add and remove org-roam tags
+
+#+begin_src emacs-lisp :tangle yes
+(map!
+ :leader
+ :prefix "n"
+ :desc "add org-roam tag" "t" #'org-roam-tag-add
+ :desc "remove org-roam tag" "T" #'org-roam-tag-remove
+)
+#+end_src
+
+** Insert yas snippet in edit mode
+
+#+begin_src emacs-lisp :tangle yes
+(map! :desc "insert snippet" "C-s" #'yas-insert-snippet)
+#+end_src
+
+** Insert citation in edit mode
+
+#+begin_src emacs-lisp :tangle yes
+(map!
+ :desc "insert citation" "C-c c" #'citar-insert-citation
+ )
+#+end_src
+
+** Insert link to another org-roam note in edit mode
+
+I don't want to enter normal mode just to insert a link to another note:
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-insert-link-to-note ()
+  "insert link to org node and prompt for link text"
+  (interactive)
+  (org-roam-node-insert)
+  (call-interactively #'org-insert-link)
+  )
+(after! org-roam
+  (map!
+   :desc "insert link to node" "C-c i" #'my-insert-link-to-note
+   )
+)
+#+end_src
+
+** Insert link to heading in edit mode
+                        
+#+begin_src emacs-lisp :tangle yes
+(map!
+ :desc "link to heading" "C-c l" #'my-insert-custom-id-link
+ )
+#+end_src
+
+** Insert footnote in edit mode
+
+#+begin_src emacs-lisp :tangle yes
+(map!
+ :desc "footnote action" "C-c f" #'org-footnote-action
+ )
+#+end_src
 
 * BibTeX
 
@@ -1082,10 +1237,9 @@ Entry format in bibtex files:
       )
 #+end_src
 
-
 * LaTeX
 
-** Nicer writing
+** Center LaTeX documents
 
 #+begin_src emacs-lisp :tangle yes
 (add-hook 'LaTeX-mode-hook #'olivetti-mode)
@@ -1100,7 +1254,6 @@ Entry format in bibtex files:
 #                ("\\paragraph{%s}" . "\\paragraph*{%s}")
 #                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
-
 * Programming
 
 ** Python
@@ -1110,134 +1263,112 @@ Entry format in bibtex files:
 (setq python-shell-interpreter "python3")
 #+end_src
 
-
-* Anki Editor
-
-I've gone back to creating cards directly in Anki.
-
-#+begin_src emacs-lisp :tangle no
-
-;; (use-package anki-editor
-;;   :commands (anki-editor-mode)
-;; )
-
-;; (map! :localleader
-;;       :map org-mode-map
-;;       (:prefix ("k" . "Anki")
-;;         :desc "Insert a note interactively" "k" 'anki-editor-insert-note
-;;         :desc "Push notes to Anki" "p" 'anki-editor-push-notes
-;;         :desc "Retry pushing notes to Anki" "r" 'anki-editor-retry-failure-notes
-;;         :desc "Cloze region" "c" 'anki-editor-cloze-region
-;;         )
-;;       )
-
-;; (add-hook! org-mode
-;;   (anki-editor-mode))
-
-;; (setq org-my-anki-file "/home/wo/.org/anki.org")
-;; (after! org-capture
-;;   (add-to-list 'org-capture-templates
-;;                '("a" "Anki basic" entry
-;;                 (file+headline org-my-anki-file "Anki Dispatch")
-;;                 "* %<%H:%M>   %^g\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Basic\n:ANKI_DECK: Default\n:END:\n** Front\n%?\n** Back\n%x\n"))
-;;   (add-to-list 'org-capture-templates
-;;                '("A" "Anki cloze"
-;;                 entry
-;;                 (file+headline org-my-anki-file "Anki Dispatch")
-;;                 "* %<%H:%M>   %^g\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Cloze\n:ANKI_DECK: Default\n:END:\n** Text\n%x\n** Extra\n"))
-;;   )
-
-#+end_src
-
-
 * Email
 
-I sometimes play around with mu4e, but haven't switched completely.
+I use mu4e for email. Mails are synchronised with mbsync into a local ~/.mail
+folder. The mbsync configuration resides in [[file:~/.mbsyncrc][~/.mbsyncrc]].
+
+** General mu4e settings
+
+I manually installed a newer version of mu/mu4e manually, which doom doesn't
+find without assistance:
+
+#+begin_src emacs-lisp :tangle yes
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
+#+end_src
+
+General settings:
+
+#+begin_src emacs-lisp :tangle yes
+(setq
+    ;; mu4e-index-cleanup nil ; speed up indexing
+    ;; mu4e-index-lazy-check t ; speed up indexing
+    mu4e-update-interval nil ; refresh index every n seconds
+    mu4e-headers-show-threads nil ; Keep non-threaded by default 'P' to change
+    mu4e-view-show-images t ; show images inline
+    mu4e-compose-format-flowed t) ; no hard linebreaks in composed emails
+#+end_src
+
+** Mail accounts
+
+Now let's configure my mail accounts. First my Uni Edinburgh account:
 
 #+begin_src emacs-lisp :tangle yes
 (set-email-account! "UoE"
   '((mu4e-sent-folder       . "/UoE/Sent Mail")
     (mu4e-drafts-folder     . "/UoE/Drafts")
     (mu4e-trash-folder      . "/UoE/Trash")
-    (mu4e-refile-folder     . "/UoE/All Mail")
+    (mu4e-refile-folder     . "/UoE/Archive")
+    (smtpmail-smtp-server   . "outlook.office365.com")
+    (smtpmail-smtp-service  . 587)
     (smtpmail-smtp-user     . "wschwarz@ed.ac.uk")
-    (user-mail-address      . "wschwarz@ed.ac.uk")
-    (mu4e-compose-signature . "\nBest,\nWolfgang"))
+    ;; (mu4e-compose-signature . "\nBest,\nWolfgang")
+    )
   t)
 #+end_src
 
-The paths here are relative to ~/.mail.
-
-
-* Misc smaller settings
-
-Rename current file and buffer (from
-https://stackoverflow.com/questions/12634850/how-to-rename-a-file-by-editing-its-current-name):
+Next my Gmail account:
 
 #+begin_src emacs-lisp :tangle yes
-(defun rename-file-and-buffer ()
-  "Renames current buffer and file it is visiting."
-  (interactive)
-  (let ((name (buffer-name))
-        (filename (buffer-file-name)))
-    (if (not (and filename (file-exists-p filename)))
-        (message "Buffer '%s' is not visiting a file!" name)
-      (let ((new-name (read-file-name "New name: " filename)))
-        (cond ((get-buffer new-name)
-               (message "A buffer named '%s' already exists!" new-name))
-              (t
-               (rename-file name new-name 1)
-               (rename-buffer new-name)
-               (set-visited-file-name new-name)
-               (set-buffer-modified-p nil)))))))
+(set-email-account! "wo@umsu"
+  '((mu4e-sent-folder       . "/wo@umsu/Sent Mail")
+    (mu4e-drafts-folder     . "/wo@umsu/Drafts")
+    (mu4e-trash-folder      . "/wo@umsu/Bin")
+    (mu4e-refile-folder     . "/wo@umsu/All Mail")
+    (smtpmail-smtp-server   . "smtp.gmail.com")
+    (smtpmail-smtp-service  . 587)
+    (smtpmail-debug-info    . t)
+    (smtpmail-debug-verbose . t)
+    (smtpmail-smtp-user     . "wo@umsu.de")
+    ;; (mu4e-compose-signature . "\nBest,\nWolfgang"))
+    )
+  t)
 #+end_src
 
-Delete files to trash:
-
-#+begin_src emacs-lisp :tangle yes
-(setq-default delete-by-moving-to-trash t)
+I need to tell doom that this a gmail account so that deleting, archiving, etc.
+works properly:
+                        
+#+end_src
+(setq +mu4e-gmail-accounts '(("wo@umsu.de" . "/wo@umsu")))
 #+end_src
 
-Raise undo-limit and allow fine-grained undo:
+** mu4e bookmarks
+
+A bookmark for the combined inbox of all accounts:
 
 #+begin_src emacs-lisp :tangle yes
-(setq undo-limit 80000000
-      evil-want-fine-undo t)
+(after! mu4e
+    (add-to-list 'mu4e-bookmarks '("m:/wo@umsu/Inbox or m:/UoE/Inbox" "Inbox" ?i)))
 #+end_src
 
-Make Y yank the whole line:
+** Improve display of html mails
+
+Improve display of html mails in dark mode (from [[https://www.reddit.com/r/emacs/comments/9ep5o1/mu4e_stop_emails_setting_backgroundforeground/][reddit]]):
 
 #+begin_src emacs-lisp :tangle yes
-(evil-put-command-property 'evil-yank-line :motion 'evil-line)
+(after! mu4e
+    (setq mu4e-html2text-command 'mu4e-shr2text)
+    (setq shr-color-visible-luminance-min 60)
+    (setq shr-color-visible-distance-min 5)
+    (setq shr-use-colors nil)
+    (advice-add #'shr-colorize-region :around (defun shr-no-colourise-region (&rest ignore))))
 #+end_src
 
-Fix copy and paste to terminal:
+** 'ab' opens mail in firefox
 
 #+begin_src emacs-lisp :tangle yes
-(setq x-select-enable-clipboard t)
+(setq
+    browse-url-browser-function 'browse-url-generic
+    browse-url-generic-program "firefox")
+(after! mu4e
+    (add-to-list 'mu4e-view-actions '("browser" . mu4e-action-view-in-browser)))
 #+end_src
 
-Auto-save buffers, backups in ~/.emacsbup/
+** Only auto-complete addresses seen in the last year
 
 #+begin_src emacs-lisp :tangle yes
-(auto-save-visited-mode 1)
-
-(setq backup-by-copying t      ; don't clobber symlinks
-      backup-directory-alist '(("." . "~/.emacsbup"))
-      delete-old-versions t
-      make-backup-files t
-      vc-make-backup-files t ; backup files even if version controlled
-      kept-new-versions 6
-      kept-old-versions 2
-      version-control t)       ; use versioned backups
-
-(setq auto-save-file-name-transforms
-  `((".*" "~/.emacsbup/" t)))
-#+end_src
-
-Allow moving past end of line (doesn't work):
-
-#+begin_src emacs-lisp :tangle yes
-;; (setq evil-move-beyond-eol t)
+(setq mu4e-compose-complete-only-after (format-time-string
+                                        "%Y-%m-%d"
+                                        (time-subtract (current-time) (days-to-time 350))))
 #+end_src
 

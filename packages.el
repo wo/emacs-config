@@ -56,13 +56,18 @@
 ;(package! anki-editor)
 (package! org-fragtog) ; auto-toggle latex previews
 (package! cdlatex)
+(package! embark)
+(package! embark-consult)
+;; (package! math-symbol-lists :disable t)
+;; (use-package! math-symbol-lists
+;;   :load-path "~/doom.d/my-math-symbols.el")
 (package! org-appear)
-(package! org-ref)
-(package! ivy-bibtex
-  :recipe (:host github :repo "tmalsburg/helm-bibtex"))
-(package! org-roam-bibtex
-  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
-(unpin! org-roam company-org-roam)
+;; (package! org-ref)
+;;(package! org-roam-bibtex
+;;  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
+;;(unpin! org-roam company-org-roam)
+;; (package! citar)
+
 ;; (package! helm-org-contacts
 ;;   :recipe (:host github :repo "tmalsburg/helm-org-contacts"))
 
@@ -74,3 +79,5 @@
 
 ; Don't delete trailing whitespace in current line on autosave:
 (package! ws-butler :disable t)
+(package! mu4e-alert :disable t)
+;; (package! mu4e-contrib)
