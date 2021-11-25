@@ -326,11 +326,12 @@ Preview LaTeX environments in org buffers, mostly adapted from [[https://tecosau
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
-  (setq org-preview-latex-image-directory "~/.org/ltxpng/")
   ; cdlatex allows, among other things, inserting latex environments with C-c {:
-  (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+  ;; (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
   ; toggle LaTeX preview as cursor moves in/out:
   (add-hook 'org-mode-hook 'org-fragtog-mode)
+  ; the default dvipng program cuts off qtree lines, so we use dvisvgm instead:
+  (setq org-preview-latex-default-process 'dvisvgm)
   ; make LaTex snippets look better:
   (setq org-highlight-latex-and-related '(native script entities))
 )
@@ -364,15 +365,15 @@ Customize rendering of LaTeX fragments:
 \\setlength{\\topmargin}{1.5cm}
 \\addtolength{\\topmargin}{-2.54cm}
 \\usepackage{arev}
-\\usepackage{arevmath}")
+\\usepackage{arevmath}
+")
 #+end_src
 
-Make background transparent and scale font-size up a little:
+Increase font-size:
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.2))
-  (setq org-format-latex-options (plist-put org-format-latex-options :background "Transparent"))
 )
 #+end_src
 
