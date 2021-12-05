@@ -682,6 +682,25 @@ Display UK bank holidays only (from https://emacs.stackexchange.com/questions/44
 
 #+end_src
 
+** A function to schedule tasks for the last day of the month
+
+From [[https://emacs.stackexchange.com/questions/31683/schedule-org-task-for-last-day-of-every-month][stackoverflow]]. Usage:
+
+#+begin_quote
+SCHEDULED: <%%(diary-last-day-of-month date)>
+#+end_quote
+
+#+begin_src emacs-lisp :tangle yes
+(defun diary-last-day-of-month (date)
+"Return `t` if DATE is the last day of the month."
+  (let* ((day (calendar-extract-day date))
+         (month (calendar-extract-month date))
+         (year (calendar-extract-year date))
+         (last-day-of-month
+            (calendar-last-day-of-month month year)))
+    (= day last-day-of-month)))
+#+end_src
+
 ** Capture templates
 
 #+begin_src emacs-lisp :tangle yes
@@ -696,15 +715,15 @@ Display UK bank holidays only (from https://emacs.stackexchange.com/questions/44
           ("a" "appointment (schedule.org)" entry (file+headline "schedule.org" "Calendar")
            "* %?\n%^t")
           ("i" "inbox entry" entry (file "inbox.org")
-           "* %?")
+           "* %?\n")
           ("j" "journal/logbook entry (logbook.org)" entry (file+datetree "logbook.org")
             "* %<%H:%M>\n%?\n" :tree-type week)
           ;; '("j" "Journal entry" entry (function org-journal-find-location)
           ;;   "* %(format-time-string org-journal-time-format)%\n%i%?")
           ; from browser:
           ("l" "link (from browser)" entry (file "inbox.org")
-           ;; "* TODO %a\n %?\n %i" :immediate-finish t))
-           "* TODO %a\n %?\n %i")
+           ;; "* %a\n %?\n %i" :immediate-finish t))
+           "* %a\n %?\n %i\n")
           )
   )
   (setq org-protocol-default-template-key "l")
@@ -840,8 +859,32 @@ Configure citar:
   (call-process-shell-command
    "curl http://127.0.0.1:23119/better-bibtex/export/library?/1/library.bibtex > ~/notes/literature.bib"
    nil 0)
+  (sleep-for 10)
   (citar-refresh)
 )
+#+end_src
+
+** A function to convert citations into new org-cite format
+
+This function replaces the content of the current buffer.
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-reformat-citations ()
+  (interactive)
+  (shell-command-on-region
+   ; mark whole buffer:
+   (point-min)
+   (point-max)
+   ; the command:
+   "python3 /home/wo/notes/update-cite-format.py"
+   ; output:
+   (current-buffer)
+   ; replace:
+   t
+   ; name of error buffer:
+   "*tex2org Error Buffer*"
+   ; show error buffer:
+   t))
 #+end_src
 
 ** A function for inserting links to headings
@@ -896,7 +939,9 @@ bound to C-c l.)
 ** Use timestamps as ids
 
 #+begin_src emacs-lisp :tangle yes
-(setq org-id-method 'ts) 
+(setq org-id-method 'ts)
+; don't include nanoseconds in the timestamp:
+(setq org-id-ts-format "%Y%m%dT%H%M%S")
 #+end_src
 
 ** Note templates
@@ -1066,21 +1111,22 @@ This function only updates the tags associated with the current post.
 
 ** Functions to convert org notes into PDF papers or handouts
 
-Convert org to LaTeX and PDF and open the PDF:
+Emacs has built-in functions for exporting org documents as LaTeX or pdf. But
+customising this process is cumbersome. I need a lot of extra preprocessing and postprocessing to make the PDFs come out as I want, so I've written a python script that does the conversions (with the help of pandoc).
 
 #+begin_src emacs-lisp :tangle yes
 (defun my-org2paper ()
   (interactive)
   (save-buffer)
-  (shell-command
+  (async-shell-command
    (format "python3 /home/wo/notes/papers/org2paper.py %s"
-           (shell-quote-argument (buffer-file-name)))
-   nil 0)
+           (shell-quote-argument (buffer-file-name))))
   (revert-buffer t t t)
 )
 #+end_src
 
-Extract and process handout:
+A similar script extracts and processes handouts, which I can write in the
+same org file in which I write a paper:
 
 #+begin_src emacs-lisp :tangle yes
 (defun my-org2handout ()
@@ -1151,7 +1197,7 @@ I use org-capture all the time to enter todo items or update logbook.org.
 #+begin_src emacs-lisp :tangle yes
 (map!
  :leader
- :desc "open org note for literature item" "n e" #'citar-open-notes
+ :desc "open org note for literature item" "n p" #'citar-open-notes
  )
 #+end_src
 
@@ -1214,6 +1260,14 @@ I don't want to enter normal mode just to insert a link to another note:
  )
 #+end_src
 
+** Delete footnote
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-access-footnote-menu ()
+  (interactive)
+  (org-footnote-action t)
+  )
+#+end_src
 * BibTeX
 
 #+begin_src emacs-lisp :tangle yes
@@ -1285,7 +1339,7 @@ General settings:
     ;; mu4e-index-cleanup nil ; speed up indexing
     ;; mu4e-index-lazy-check t ; speed up indexing
     mu4e-update-interval nil ; refresh index every n seconds
-    mu4e-headers-show-threads nil ; Keep non-threaded by default 'P' to change
+    mu4e-headers-show-threads t ; Keep non-threaded by default 'P' to change
     mu4e-view-show-images t ; show images inline
     mu4e-compose-format-flowed t) ; no hard linebreaks in composed emails
 #+end_src
