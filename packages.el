@@ -77,6 +77,9 @@
 ; choose spell-checker based on current language:
 ;; (package! guess-language)
 
+; show outline next to text:
+;; (package! org-sidebar)
+
 ; Don't delete trailing whitespace in current line on autosave:
 (package! ws-butler :disable t)
 (package! mu4e-alert :disable t)

@@ -30,10 +30,13 @@ keep track of projects and appointments. Most of this happens in org-mode.
 (evil-put-command-property 'evil-yank-line :motion 'evil-line)
 #+end_src
 
-** Partially fix broken M-RET and C-RET behaviour in org files
+** Fix broken M-RET and C-RET behaviour in org files
 
 #+begin_src emacs-lisp :tangle yes
-(setq org-insert-heading-respect-content nil)
+;; (setq org-insert-heading-respect-content nil)
+(map! :after evil-org
+      :map evil-org-mode-map
+      :ni "C-<return>" #'org-insert-heading-respect-content)
 #+end_src
 
 ** Delete files to trash
@@ -200,6 +203,7 @@ I'm going back and forth between relative line numbers and no line numbers.
       doom-enable-brighter-comments 1
       +doom-dashboard-banner-file (expand-file-name "logo.png" doom-private-dir)
       )
+;; (set-face-foreground 'font-lock-comment-face "#fc0")
 #+end_src
 
 ** Colour adjustments for org
@@ -422,7 +426,7 @@ The company package suggests completions for words. I rarely use this.
 
 #+begin_src emacs-lisp :tangle yes
 (after! company
-  (setq company-idle-delay 0.5
+  (setq company-idle-delay 1.2
         company-minimum-prefix-length 1)
   (setq company-show-numbers t)
   ;; only autocomplete words, not numerals:
@@ -706,16 +710,16 @@ SCHEDULED: <%%(diary-last-day-of-month date)>
 #+begin_src emacs-lisp :tangle yes
 (after! org-capture
   (setq org-capture-templates '(
-          ("t" "task (todo.org)" entry (file+headline "todo.org" "Single Tasks")
-           "* TODO %?")
-          ("s" "scheduled task (todo.org)" entry (file+headline "todo.org" "Single Tasks")
-           "* TODO %?\nSCHEDULED: %^t\n")
+          ("t" "single task (todo.org)" entry (file+headline "todo.org" "Single Tasks")
+           "\n* TODO %?")
+          ("s" "scheduled task (schedule.org)" entry (file+headline "schedule.org" "Tickler")
+           "\n* TODO %?\nSCHEDULED: %^t\n")
           ("b" "buy (add to shopping list in todo.org)" entry (file+headline "todo.org" "Shopping list")
-           "* TODO buy %?")
+           "\n* TODO buy %?")
           ("a" "appointment (schedule.org)" entry (file+headline "schedule.org" "Calendar")
-           "* %?\n%^t")
+           "\n* %?\n%^t")
           ("i" "inbox entry" entry (file "inbox.org")
-           "* %?\n")
+           "\n* %?\n")
           ("j" "journal/logbook entry (logbook.org)" entry (file+datetree "logbook.org")
             "* %<%H:%M>\n%?\n" :tree-type week)
           ;; '("j" "Journal entry" entry (function org-journal-find-location)
@@ -723,7 +727,7 @@ SCHEDULED: <%%(diary-last-day-of-month date)>
           ; from browser:
           ("l" "link (from browser)" entry (file "inbox.org")
            ;; "* %a\n %?\n %i" :immediate-finish t))
-           "* %a\n %?\n %i\n")
+           "\n* %a\n %?\n %i\n")
           )
   )
   (setq org-protocol-default-template-key "l")
@@ -759,76 +763,6 @@ I sometimes like automatic line breaks when I write prose:
 Citation management used to be a mess. Now it's fairly easy with the new
 org-internal citation format and the citar package.
 
-# configure org-ref:
-
-#+begin_src emacs-lisp :tangle yes
-;; (use-package! org-ref
-;;   :after org
-;;   :config
-;;   (setq
-;;    ;; org-ref-default-bibliography '("/home/wo/notes/literature.bib")
-;;    ;; org-ref-pdf-directory  "/home/wo/papers/[A-Z]/"
-;;    ;; org-ref-notes-directory "~/notes/literature"
-;;    ;; org-ref-notes-function 'orb-edit-notes
-;;    org-ref-show-broken-links nil ;; speed up agenda generation
-;;    ;; bugfix: allow opening pdf at point
-;;    org-ref-get-pdf-filename-function (lambda (key) (car (bibtex-completion-find-pdf key)))
-;;    org-ref-completion-library 'org-ref-ivy-cite
-;;    org-ref-default-citation-link "citep"
-;;   )
-;; )
-#+end_src
-
-#+begin_src emacs-lisp :tangle yes
-;; (after! org-ref
-;;   (use-package! ivy-bibtex
-;;     :config
-;;     (setq
-;;      bibtex-completion-bibliography "~/notes/literature.bib"
-;;      bibtex-completion-library-path "~/papers/[A-Z]/"
-;;      bibtex-completion-notes-path "~/notes/literature/"
-;;      bibtex-completion-pdf-field "file"
-;;      bibtex-completion-pdf-symbol "⌘"
-;;      bibtex-completion-notes-symbol "✎"
-;;      )
-;;   )
-;; )
-#+end_src
-
-#+begin_src emacs-lisp :tangle yes
-;; (org-link-set-parameters
-;;  "cite"
-;;  :display 'org-link)
-#+end_src
-
-# I don't want to enter normal mode just to insert a reference:
-
-# #+begin_src emacs-lisp :tangle yes
-# (map!
-#  :desc "insert citation" "C-c c" #'org-ref-insert-link
-#  )
-# #+end_src
-
-# Call ivy-bibtex with SPC n p:
-
-# #+begin_src emacs-lisp :tangle yes
-# (map!
-#  :leader
-#  :desc "open bibliography database (ivy-bibtex)" "n p" #'ivy-bibtex
-#  )
-# #+end_src
-
-#+begin_src emacs-lisp :tangle yes
-;; (use-package citar
-;;   :bind (("C-c c" . citar-insert-citation)
-;;          :map minibuffer-local-map
-;;          ("M-b" . citar-insert-preset))
-;;   :custom
-;;   (citar-bibliography '("~/notes/literature.bib")))
-#+end_src
-
-Configure citar:
-
 #+begin_src emacs-lisp :tangle yes
 (after! org-roam
   (setq citar-bibliography '("~/notes/literature.bib")
@@ -846,11 +780,11 @@ Configure citar:
   )
 (after! citar
   ;; template for literature notes:
-  (add-to-list 'citar-templates '(note . "#+title: ${author editor} ${date year issued:4} ${title}"))
+  (add-to-list 'citar-templates '(note . "${author editor} ${date year issued:4} ${title}"))
   )
 #+end_src
 
-** A function to update the references database from zotero
+** Update the references database from zotero
 
 #+begin_src emacs-lisp :tangle yes
 (defun my-update-literature-bib-from-zotero ()
@@ -859,12 +793,12 @@ Configure citar:
   (call-process-shell-command
    "curl http://127.0.0.1:23119/better-bibtex/export/library?/1/library.bibtex > ~/notes/literature.bib"
    nil 0)
-  (sleep-for 10)
+  (sleep-for 15)
   (citar-refresh)
 )
 #+end_src
 
-** A function to convert citations into new org-cite format
+** Convert citations into new org-cite format
 
 This function replaces the content of the current buffer.
 
@@ -887,7 +821,7 @@ This function replaces the content of the current buffer.
    t))
 #+end_src
 
-** A function for inserting links to headings
+** Insert links to headings
 
 I use links by custom_id to refer to section headings. The following code lets
 me insert such links from a list of custom_ids currently in the buffer. (This is
@@ -1268,6 +1202,29 @@ I don't want to enter normal mode just to insert a link to another note:
   (org-footnote-action t)
   )
 #+end_src
+
+** Send and fetch mail
+
+Mu4e's built-in sync command takes to long, blocking emacs.
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-mail-fetch ()
+  (interactive)
+  (save-buffer)
+  (call-process-shell-command "/usr/local/bin/mbsync --pull -a&" nil 0)
+)
+(defun my-mail-send
+  (interactive) ()
+  (save-buffer)
+  (call-process-shell-command "/usr/local/bin/mbsync --push -a" nil 0)
+)
+(map! :leader
+      :prefix "m"
+      :desc "fetch mail" "y" #'my-mail-fetch
+      :desc "send mail" "z" #'my-mail-send
+)
+#+end_src
+
 * BibTeX
 
 #+begin_src emacs-lisp :tangle yes
@@ -1316,6 +1273,17 @@ Entry format in bibtex files:
 #+begin_src emacs-lisp :tangle yes
 (setq python-fill-docstring-style 'symmetric)
 (setq python-shell-interpreter "python3")
+#+end_src
+
+** Update my homepage
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-update-course-pages()
+  "update course pages on wolfgangschwarz.net"
+  (interactive)
+  (shell-command
+   "cd /home/wo/programming/wolfgangschwarz.net && python3 createpages.py -c")
+)
 #+end_src
 
 * Email
@@ -1370,6 +1338,7 @@ Next my Gmail account:
     (mu4e-drafts-folder     . "/wo@umsu/Drafts")
     (mu4e-trash-folder      . "/wo@umsu/Bin")
     (mu4e-refile-folder     . "/wo@umsu/All Mail")
+    (smtpmail-default-smtp-server . "smtp.gmail.com")
     (smtpmail-smtp-server   . "smtp.gmail.com")
     (smtpmail-smtp-service  . 587)
     (smtpmail-debug-info    . t)
@@ -1378,12 +1347,16 @@ Next my Gmail account:
     ;; (mu4e-compose-signature . "\nBest,\nWolfgang"))
     )
   t)
+;; (auth-source-pass-enable)
+;; (setq auth-sources '(password-store))
+;; (setq auth-source-debug t)
+;; (setq auth-source-do-cache nil)
 #+end_src
 
 I need to tell doom that this a gmail account so that deleting, archiving, etc.
 works properly:
                         
-#+end_src
+#+begin_src emacs-lisp :tangle yes
 (setq +mu4e-gmail-accounts '(("wo@umsu.de" . "/wo@umsu")))
 #+end_src
 

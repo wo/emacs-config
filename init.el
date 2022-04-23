@@ -108,7 +108,6 @@
        ;;terraform         ; infrastructure as code
        ;;tmux              ; an API for interacting with tmux
        ;;upload            ; map local to remote projects via ssh/ftp
-       ;biblio
 
        :lang
        ;;agda              ; types of types of types of types...
