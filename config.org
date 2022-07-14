@@ -734,6 +734,22 @@ SCHEDULED: <%%(diary-last-day-of-month date)>
   )
 #+end_src
 
+** Fix broken capture mode after agenda
+
+see [[https://github.com/doomemacs/doomemacs/issues/5714]]
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (defadvice! dan/+org--restart-mode-h-careful-restart (fn &rest args)
+    :around #'+org--restart-mode-h
+    (let ((old-org-capture-current-plist (and (bound-and-true-p org-capture-mode)
+                                              (bound-and-true-p org-capture-current-plist))))
+      (apply fn args)
+      (when old-org-capture-current-plist
+        (setq-local org-capture-current-plist old-org-capture-current-plist)
+        (org-capture-mode +1)))))
+#+end_src
+
 * Writing in org-mode
 
 ** Writeroom mode
