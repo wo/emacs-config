@@ -247,7 +247,7 @@ Center text:
   :commands olivetti-mode
   :config
   (setq olivetti-body-width 0.7)
-  (setq olivetti-minimum-body-width 70))
+  (setq olivetti-minimum-body-width 90))
 (add-hook 'org-mode-hook #'olivetti-mode)
 #+end_src
 
@@ -809,7 +809,7 @@ org-internal citation format and the citar package.
   (call-process-shell-command
    "curl http://127.0.0.1:23119/better-bibtex/export/library?/1/library.bibtex > ~/notes/literature.bib"
    nil 0)
-  (sleep-for 15)
+  (sleep-for 1)
   (citar-refresh)
 )
 #+end_src
