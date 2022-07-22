@@ -1059,17 +1059,39 @@ This function only updates the tags associated with the current post.
 )
 #+end_src
 
-** Functions to convert org notes into PDF papers or handouts
+** Functions to convert org notes into LaTex, PDF, or Word format
 
 Emacs has built-in functions for exporting org documents as LaTeX or pdf. But
 customising this process is cumbersome. I need a lot of extra preprocessing and postprocessing to make the PDFs come out as I want, so I've written a python script that does the conversions (with the help of pandoc).
 
 #+begin_src emacs-lisp :tangle yes
-(defun my-org2paper ()
+(defun my-org2latex ()
+  (interactive)
+  (save-buffer)
+  (async-shell-command
+   (format "python3 /home/wo/notes/papers/org2latex.py %s"
+           (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-org2pdf ()
   (interactive)
   (save-buffer)
   (async-shell-command
    (format "python3 /home/wo/notes/papers/org2paper.py %s"
+           (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-org2docx ()
+  (interactive)
+  (save-buffer)
+  (async-shell-command
+   (format "python3 /home/wo/notes/papers/org2docx.py %s"
            (shell-quote-argument (buffer-file-name))))
   (revert-buffer t t t)
 )
