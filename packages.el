@@ -58,15 +58,18 @@
 (package! cdlatex)
 (package! embark)
 (package! embark-consult)
+;; (package! consult-org-roam) ; search notes
 ;; (package! math-symbol-lists :disable t)
 ;; (use-package! math-symbol-lists
 ;;   :load-path "~/doom.d/my-math-symbols.el")
 (package! org-appear)
+(package! org-contacts)
 ;; (package! org-ref)
 ;;(package! org-roam-bibtex
 ;;  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
 ;;(unpin! org-roam company-org-roam)
 ;; (package! citar)
+;; (package! citar-embark)
 
 ;; (package! helm-org-contacts
 ;;   :recipe (:host github :repo "tmalsburg/helm-org-contacts"))
@@ -84,3 +87,5 @@
 (package! ws-butler :disable t)
 (package! mu4e-alert :disable t)
 ;; (package! mu4e-contrib)
+
+

@@ -280,14 +280,11 @@ Properly display sub- and superscripts:
 ** Disable strikethrough rendering
 
 I often have two '+' in a line, and never want to strike through text.
-This tweak is from [[http://doc.norang.ca/org-mode.html#StrikeThroughEmphasis][Bernt Hansen's notes]]. 
 
 #+begin_src emacs-lisp :tangle yes
-(setq org-emphasis-alist (quote (("*" bold "<b>" "</b>")
-                                 ("/" italic "<i>" "</i>")
-                                 ("_" underline "<span style=\"text-decoration:underline;\">" "</span>")
-                                 ("=" org-code "<code>" "</code>" verbatim)
-                                 ("~" org-verbatim "<code>" "</code>" verbatim))))
+(after! org
+  (add-to-list 'org-emphasis-alist '("+" (:strike-through f)))
+  )
 #+end_src
 
 ** Expand invisible markup when editing
