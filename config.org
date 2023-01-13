@@ -937,35 +937,14 @@ Emulate subdirectories-as-tags behaviour from v1:
 (setq org-roam-node-display-template "${directories:10} ${title:*} ${tags:10}")
 #+end_src
 
-** Deft
-
-For searching through notes.
+** Search
 
 #+begin_src emacs-lisp :tangle yes
-(setq deft-directory org-roam-directory
-      deft-use-filter-string-for-filename t
-      deft-default-extension "org"
-      deft-recursive t)
-#+end_src
-
-Make summaries readable (https://github.com/jrblevin/deft/issues/75):
-
-#+begin_src emacs-lisp :tangle yes
-(setq deft-strip-summary-regexp ":PROPERTIES:\n\\(.+\n\\)+:END:\n")
-(setq deft-use-filename-as-title 't)
-#+end_src
-
-fix keybindings in deft window (https://github.com/hlissner/doom-emacs/issues/2991):
-
-#+begin_src emacs-lisp :tangle yes
-(map! :map deft-mode-map
-        :n "gr"  #'deft-refresh
-        :n "r"   #'deft-rename-file
-        :n "a"   #'deft-new-file
-        :n "A"   #'deft-new-file-named
-        :n "d"   #'deft-delete-file
-        :n "D"   #'deft-archive-file
-        :n "q"   #'kill-current-buffer)
+ (defun my-org-roam-search ()
+  "Search org-roam directory using consult-ripgrep. With live-preview."
+  (interactive)
+  (let ((consult-ripgrep-command "rg --null --ignore-case --type org --line-buffered --color=always --max-columns=500 --no-heading --line-number . -e ARG OPTS"))
+    (consult-ripgrep org-roam-directory)))
 #+end_src
 
 ** A function to change the note title
@@ -1159,6 +1138,7 @@ I use org-capture all the time to enter todo items or update logbook.org.
         :desc "org-roam-node-find" "f" #'org-roam-node-find
         :desc "org-roam-show-graph" "g" #'org-roam-show-graph
         :desc "org-roam-capture" "c" #'org-roam-capture
+        :desc "my-org-roam-search" "d" #'my-org-roam-search
         )
   )
 #+end_src
