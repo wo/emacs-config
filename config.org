@@ -1288,11 +1288,23 @@ Entry format in bibtex files:
 
 * LaTeX
 
+** Use XeLaTeX
+
+#+begin_src emacs-lisp :tangle yes
+(after! latex
+      (add-to-list 'TeX-command-list '("XeLaTeX" "%`xelatex --synctex=1%(mode)%' %t" TeX-run-TeX nil t)))
+
+(setq org-latex-pdf-process
+      '("latexmk -f -pdf -xelatex -shell-escape -interaction=nonstopmode -output-directory=%o %f"))
+#+end_src
+
+
 ** Center LaTeX documents
 
 #+begin_src emacs-lisp :tangle yes
 (add-hook 'LaTeX-mode-hook #'olivetti-mode)
 #+end_src
+
 
 # (add-to-list 'org-latex-classes
 #              '("woarticle"
