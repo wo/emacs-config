@@ -790,24 +790,14 @@ Citation management used to be a mess. Now it's fairly easy with the new
 org-internal citation format and the citar package.
 
 #+begin_src emacs-lisp :tangle yes
-(after! org-roam
+(after! citar
   (setq citar-bibliography '("~/notes/literature.bib")
-        org-cite-global-bibliography '("~/notes/literature.bib")
         citar-library-paths '("~/papers/[A-Z]/")
         citar-notes-paths '("~/notes/literature/")
-        citar-file-open-prompt t
-        org-cite-insert-processor 'citar
-        org-cite-follow-processor 'citar
-        org-cite-activate-processor 'citar
-        org-support-shift-select t
-        ;; include property drawer metadata for 'org-roam' v2 in literature notes:
-        citar-file-note-org-include '(org-id org-roam-ref)
-        )
-  )
-(after! citar
-  ;; template for literature notes:
-  (add-to-list 'citar-templates '(note . "${author editor} ${date year issued:4} ${title}"))
-  )
+        org-cite-global-bibliography '("~/notes/literature.bib")
+        citar-org-roam-note-title-template "${author editor} ${date year issued:4} ${title}"
+        citar-org-roam-subdir "literature")
+)
 #+end_src
 
 ** Update the references database from zotero
@@ -820,7 +810,6 @@ org-internal citation format and the citar package.
    "curl http://127.0.0.1:23119/better-bibtex/export/library?/1/library.bibtex > ~/notes/literature.bib"
    nil 0)
   (sleep-for 1)
-  (citar-refresh)
 )
 #+end_src
 
