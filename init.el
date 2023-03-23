@@ -14,6 +14,10 @@
 ;;      Alternatively, press 'gd' (or 'C-c g d') on a module to browse its
 ;;      directory (for easy access to its source code).
 
+; keep C-u for prefix commands:
+(setq evil-want-C-u-scroll nil
+      evil-want-C-d-scroll nil)
+
 (doom! :input
        ;;chinese
        ;;japanese

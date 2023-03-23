@@ -83,6 +83,8 @@
 ; show outline next to text:
 ;; (package! org-sidebar)
 
+(package! gptel) ; chatgpt
+
 ; Don't delete trailing whitespace in current line on autosave:
 (package! ws-butler :disable t)
 (package! mu4e-alert :disable t)

@@ -1307,7 +1307,9 @@ Entry format in bibtex files:
 (setq python-shell-interpreter "python3")
 #+end_src
 
-** Update my homepage
+* Other functionality
+
+** Update course pages on my homepage
 
 #+begin_src emacs-lisp :tangle yes
 (defun my-update-course-pages()
@@ -1316,6 +1318,16 @@ Entry format in bibtex files:
   (shell-command
    "cd /home/wo/programming/wolfgangschwarz.net && python3 createpages.py -c")
 )
+#+end_src
+
+** GPT
+
+I use the gptel package.
+
+#+begin_src emacs-lisp :tangle yes
+(load-file "~/.doom.d/gptel-api-key.el")
+(setq gptel-default-mode 'org-mode)
+(setq gptel-prompt-string "* ")
 #+end_src
 
 * Email
