@@ -589,11 +589,14 @@ My custom agenda views:
             (alltodo "" ((org-agenda-overriding-header "")
                          (org-super-agenda-groups
                           '(
+                            (:name "Write" :tag "write")
+                            (:name "Read" :tag "read")
+                            ;; (:name "Priority B" :priority "B")
+                            (:name "Programming" :tag "prog")
+                            (:name "Frogs" :tag "frog")
                             (:name "Routines" :tag "routine")
-                            (:name "Today's Tasks" :priority "A")
-                            (:name "More Tasks" :priority "B")
-                            (:name "Even More Tasks" :priority "C")
-                            (:name "To refile" :file-path "inbox.org")
+                            (:name "Other tasks" :priority>= "C")
+                            ;; (:name "To refile" :file-path "inbox.org")
                             ;; (:name "Active projects"
                             ;;        :file-path "journal/")
                             ;; (:name "Deadlines"
