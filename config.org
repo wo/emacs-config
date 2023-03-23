@@ -327,6 +327,7 @@ But we can add them:
                             ("boxright" "$\\boxright$" nil "" "" "" "□→")
                             ("models" "$\\models$" nil "" "" "" "⊨")
                             ("vdash" "$\\vdash$" nil "" "" "" "⊢")
+                            ("leadsto" "$\leadsto$" nil "" "" "" "↝")
                             ("llb" "$\\llbracket$" nil "" "" "" "⟦")
                             ("rrb" "$\\rrbracket$" nil "" "" "" "⟧")
                            )   
