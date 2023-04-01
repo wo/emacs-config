@@ -15,15 +15,15 @@
 ;;      directory (for easy access to its source code).
 
 ; keep C-u for prefix commands:
-(setq evil-want-C-u-scroll nil
-      evil-want-C-d-scroll nil)
+;; (setq evil-want-C-u-scroll nil
+;;       evil-want-C-d-scroll nil)
 
 (doom! :input
        ;;chinese
        ;;japanese
 
        :completion
-       company           ; the ultimate code completion backend
+       (company +childframe)           ; the ultimate code completion backend
        ;helm              ; the *other* search engine for love and life
        ;ido               ; the other *other* search engine...
        ;ivy              ; a search engine for love and life

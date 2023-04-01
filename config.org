@@ -437,7 +437,7 @@ The company package suggests completions for words. I rarely use this.
 
 #+begin_src emacs-lisp :tangle yes
 (after! company
-  (setq company-idle-delay 1.2
+  (setq company-idle-delay 1
         company-minimum-prefix-length 1)
   (setq company-show-numbers t)
   ;; only autocomplete words, not numerals:
@@ -1308,6 +1308,23 @@ Entry format in bibtex files:
 (setq python-shell-interpreter "python3")
 #+end_src
 
+** Copilot
+
+Accept code completion from copilot; fallback to company:
+
+#+begin_src emacs-lisp :tangle yes
+(use-package! copilot
+  :defer 5
+  :hook (prog-mode . copilot-mode)
+  :bind (("C-TAB" . 'copilot-accept-completion-by-word)
+         ("C-<tab>" . 'copilot-accept-completion-by-word)
+         ("C-]" . 'copilot-next-completion)
+         ("C-[" . 'copilot-previous-completion)
+         :map copilot-completion-map
+         ("<tab>" . 'copilot-accept-completion)
+         ("TAB" . 'copilot-accept-completion)))
+#+end_src
+
 * Other functionality
 
 ** Update course pages on my homepage
@@ -1328,7 +1345,6 @@ I use the gptel package.
 #+begin_src emacs-lisp :tangle yes
 (load-file "~/.doom.d/gptel-api-key.el")
 (setq gptel-default-mode 'org-mode)
-(setq gptel-prompt-string "* ")
 #+end_src
 
 * Email
