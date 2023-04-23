@@ -83,11 +83,20 @@
 ; show outline next to text:
 ;; (package! org-sidebar)
 
-(package! gptel) ; chatgpt
+; chatgpt:
+(package! gptel)
+
+; github copilot:
+(package! copilot
+  :recipe (:host github :repo "zerolfx/copilot.el" :files ("*.el" "dist")))
+
+; current powerthesaurus version in doom throws 403:
+(unpin! powerthesaurus)
+(package! powerthesaurus
+ :recipe (:host github :repo "SavchenkoValeriy/emacs-powerthesaurus"))
 
 ; Don't delete trailing whitespace in current line on autosave:
 (package! ws-butler :disable t)
 (package! mu4e-alert :disable t)
 ;; (package! mu4e-contrib)
-
 
