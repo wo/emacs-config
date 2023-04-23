@@ -437,7 +437,7 @@ The company package suggests completions for words. I rarely use this.
 
 #+begin_src emacs-lisp :tangle yes
 (after! company
-  (setq company-idle-delay 1
+  (setq company-idle-delay 2
         company-minimum-prefix-length 1)
   (setq company-show-numbers t)
   ;; only autocomplete words, not numerals:
@@ -590,13 +590,15 @@ My custom agenda views:
             (alltodo "" ((org-agenda-overriding-header "")
                          (org-super-agenda-groups
                           '(
-                            (:name "Write" :tag "write")
-                            (:name "Read" :tag "read")
+                            ;; (:name "Today" :priority "A")
+                            (:name "Write" :and(:tag "write" :priority>= "B"))
+                            (:name "Read" :and(:tag "read" :priority>= "B"))
                             ;; (:name "Priority B" :priority "B")
-                            (:name "Programming" :tag "prog")
-                            (:name "Frogs" :tag "frog")
+                            (:name "Programming" :and(:tag "prog" :priority>= "B"))
+                            (:name "Frogs" :and(:tag "frog" :priority>= "B"))
+                            (:name "Other tasks" :priority>= "B")
                             (:name "Routines" :tag "routine")
-                            (:name "Other tasks" :priority>= "C")
+                            (:name "Lower priority" :priority>= "C")
                             ;; (:name "To refile" :file-path "inbox.org")
                             ;; (:name "Active projects"
                             ;;        :file-path "journal/")
