@@ -1054,6 +1054,19 @@ This function only updates the tags associated with the current post.
 )
 #+end_src
 
+** A function to display org notes with WebPPL blocks in the browser
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-webpplify ()
+  (interactive)
+  (save-buffer)
+  (shell-command
+   (format "python3 /home/wo/programming/webpplview/org2html.py %s"
+           (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
+#+end_src
+
 ** Functions to convert org notes into LaTex, PDF, or Word format
 
 Emacs has built-in functions for exporting org documents as LaTeX or pdf. But
