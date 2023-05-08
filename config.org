@@ -477,13 +477,13 @@ directories, but they are all symlinked to my ~/org directory.
 
 ** Quick access to project files
 
-I use SPC / to quickly access the project files. (This doesn't seem work if
+I use SPC  - to quickly access the project files. (This doesn't seem work if
 ~/org is a git repository because then symlinks are ignored.)
 
 #+begin_src emacs-lisp :tangle yes
 (map!
  :leader
- :desc "open ~/org file" "/"  '(lambda () (interactive) (ido-find-file-in-dir "~/org/"))
+ :desc "open ~/org file" "-"  '(lambda () (interactive) (ido-find-file-in-dir "~/org/"))
  )
 #+end_src
 
@@ -564,7 +564,7 @@ Show birthdays:
   )
 #+end_src
 
-My custom agenda views:
+My custom agenda view:
 
 #+begin_src emacs-lisp :tangle yes
 (use-package! org-super-agenda
@@ -796,9 +796,9 @@ Distraction-free prose writing. This comes from the :ui zen module.
 I sometimes like automatic line breaks when I write prose:
 
 #+begin_src emacs-lisp :tangle yes
-;; (after! org
-;;   (add-hook 'org-mode-hook #'auto-fill-mode)
-;; )
+; (after! org
+  ; (add-hook 'org-mode-hook #'auto-fill-mode)
+; )
 #+end_src
 
 ** Citations
@@ -1146,6 +1146,15 @@ place, and I don't want to enter normal mode and press SPC m d T each time.
 )
 #+end_src
 
+** Restore some standard Meta-X commands
+
+#+begin_src emacs-lisp :tangle yes
+(map! :map org-mode-map
+      "M-y" #'yank-pop
+      "M-q" #'org-fill-paragraph
+      )
+#+end_src
+
 ** Call org-capture
 
 I use org-capture all the time to enter todo items or update logbook.org.
@@ -1348,7 +1357,12 @@ Accept code completion from copilot; fallback to company:
          ("C-[" . 'copilot-previous-completion)
          :map copilot-completion-map
          ("<tab>" . 'copilot-accept-completion)
-         ("TAB" . 'copilot-accept-completion)))
+         ("TAB" . 'copilot-accept-completion))
+  (map!
+   :leader
+   :desc "toggle copilot" "t p" #'copilot-mode
+  )
+)
 #+end_src
 
 * Other functionality
