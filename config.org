@@ -801,6 +801,13 @@ I sometimes like automatic line breaks when I write prose:
 ; )
 #+end_src
 
+#+begin_src emacs-lisp :tangle yes
+  (map!
+   :leader
+   :desc "toggle auto-fill-mode" "t a" #'auto-fill-mode
+   )
+#+end_src
+
 ** Citations
 
 Citation management used to be a mess. Now it's fairly easy with the new
@@ -1349,19 +1356,18 @@ Accept code completion from copilot; fallback to company:
 
 #+begin_src emacs-lisp :tangle yes
 (use-package! copilot
-  :defer 5
   :hook (prog-mode . copilot-mode)
-  :bind (("C-TAB" . 'copilot-accept-completion-by-word)
-         ("C-<tab>" . 'copilot-accept-completion-by-word)
-         ("C-]" . 'copilot-next-completion)
-         ("C-[" . 'copilot-previous-completion)
-         :map copilot-completion-map
-         ("<tab>" . 'copilot-accept-completion)
-         ("TAB" . 'copilot-accept-completion))
-  (map!
-   :leader
-   :desc "toggle copilot" "t p" #'copilot-mode
-  )
+  :bind (:map copilot-completion-map
+              ("<tab>" . 'copilot-accept-completion)
+              ("TAB" . 'copilot-accept-completion)
+              ("C-TAB" . 'copilot-accept-completion-by-word)
+              ("C-<tab>" . 'copilot-accept-completion-by-word)
+              ("C-p" . 'copilot-previous-completion)
+              ("C-n" . 'copilot-next-completion)
+             ))
+(map!
+:leader
+:desc "toggle copilot" "t p" #'copilot-mode
 )
 #+end_src
 
@@ -1385,6 +1391,14 @@ I use the gptel package.
 #+begin_src emacs-lisp :tangle yes
 (load-file "~/.doom.d/gptel-api-key.el")
 (setq gptel-default-mode 'org-mode)
+#+end_src
+
+A function to start a new session:
+#+begin_src emacs-lisp :tangle yes
+(defun my-gptel-new ()
+  (interactive)
+  (delete-region (point-min) (point-max))
+  (insert "*** "))
 #+end_src
 
 * Email
