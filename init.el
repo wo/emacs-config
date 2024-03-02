@@ -14,9 +14,9 @@
 ;;      Alternatively, press 'gd' (or 'C-c g d') on a module to browse its
 ;;      directory (for easy access to its source code).
 
-; keep C-u for prefix commands:
-;; (setq evil-want-C-u-scroll nil
-;;       evil-want-C-d-scroll nil)
+;; keep C-u for prefix commands:
+(setq evil-want-C-u-scroll nil
+      evil-want-C-d-scroll nil)
 
 (doom! :input
        ;;chinese
@@ -27,7 +27,7 @@
        ;helm              ; the *other* search engine for love and life
        ;ido               ; the other *other* search engine...
        ;ivy              ; a search engine for love and life
-       (vertico +icons)  ; includes consult
+       vertico  ; includes consult
 
        :ui
        ;deft              ; notational velocity for Emacs
@@ -101,7 +101,7 @@
         +dictionary
         +word-synonyms
         +docsets)        ; ...or in Dash docsets locally
-       ;;lsp
+       lsp
        ;;macos             ; MacOS-specific commands
        magit             ; a git porcelain for Emacs
        ;;make              ; run make tasks from Emacs
@@ -150,7 +150,7 @@
        ;;nix               ; I hereby declare "nix geht mehr!"
        ;;ocaml             ; an objective camel
        (org              ; organize your plain life in plain text
-        ;;+dragndrop       ; drag & drop files/images into org buffers
+        +dragndrop       ; drag & drop files/images into org buffers
         ;;+hugo            ; use Emacs for hugo blogging
         ;;+jupyter        ; ipython/jupyter support for babel
         +roam2
@@ -160,10 +160,11 @@
         ;+present)        ; using org-mode for presentations
         )
        raku              ; write code no one else can comprehend
-       php               ; perl's insecure younger brother
+       (php +lsp)               ; perl's insecure younger brother
        ;;plantuml          ; diagrams for confusing people more
        ;;purescript        ; javascript, but functional
-       python            ; beautiful is better than ugly
+       (python +lsp)           ; beautiful is better than ugly
+       (javascript +lsp)
        ;;qt                ; the 'cutest' gui framework ever
        ;;racket            ; a DSL for DSLs
        ;;rest              ; Emacs as a REST client

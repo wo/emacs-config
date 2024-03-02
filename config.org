@@ -9,6 +9,7 @@ keep track of projects and appointments. Most of this happens in org-mode.
 
 #+begin_src emacs-lisp :tangle yes
 ;;; config.el -*- lexical-binding: t; -*-
+(advice-remove 'set-window-buffer #'ad-Advice-set-window-buffer)
 #+end_src
 
 ** Personal info
@@ -22,6 +23,14 @@ keep track of projects and appointments. Most of this happens in org-mode.
 
 #+begin_src emacs-lisp :tangle yes
 (setq projectile-project-search-path '("~/words/" "~/notes/" "~/programming/"))
+#+end_src
+
+** Make sure recent files list is updated
+
+Not sure why this stopped working by default.
+
+#+begin_src emacs-lisp :tangle yes
+(add-hook 'find-file-hook 'recentf-save-list)
 #+end_src
 
 ** Make Y yank the whole line
@@ -52,12 +61,6 @@ keep track of projects and appointments. Most of this happens in org-mode.
       evil-want-fine-undo t)
 #+end_src
 
-** Fix copy and paste to terminal
-
-#+begin_src emacs-lisp :tangle yes
-(setq x-select-enable-clipboard t)
-#+end_src
-
 ** Auto-save buffers, backups in ~/.emacsbup/
 
 #+begin_src emacs-lisp :tangle yes
@@ -81,23 +84,23 @@ keep track of projects and appointments. Most of this happens in org-mode.
 Why is it so hard to set up spell-checking with multiple dictionaries?
 
 #+begin_src emacs-lisp :tangle yes
-(setq ispell-local-dictionary "en_GB")
-(setq ispell-program-name "hunspell")
-(setq ispell-hunspell-dictionary-alist '(("de_DE"
-                                            "[[:alpha:]]"
-                                            "[^[:alpha:]]"
-                                            "['.ß-]" 'many-otherchars
-                                            ("-r" "-d" "de_DE") nil utf-8)
-                                           ("en_GB"
-                                            "[[:alpha:]]"
-                                            "[^[:alpha:]]"
-                                            "[']" nil
-                                            ("-r" "-d" "en_GB") nil utf-8)))
+;; (setq ispell-local-dictionary "en_GB")
+;; (setq ispell-program-name "hunspell")
+;; (setq ispell-hunspell-dictionary-alist '(("de_DE"
+;;                                             "[[:alpha:]]"
+;;                                             "[^[:alpha:]]"
+;;                                             "['.ß-]" 'many-otherchars
+;;                                             ("-r" "-d" "de_DE") nil utf-8)
+;;                                            ("en_GB"
+;;                                             "[[:alpha:]]"
+;;                                             "[^[:alpha:]]"
+;;                                             "[']" nil
+;;                                             ("-r" "-d" "en_GB") nil utf-8)))
 ;; (when (boundp 'ispell-hunspell-dictionary-alist)
 ;;   (setq ispell-hunspell-dictionary-alist ispell-local-dictionary-alist))
 ;; For saving words to the personal dictionary, don't infer it from
 ;; the locale, otherwise it would save to ~/.hunspell_en_GB.
-(setq ispell-personal-dictionary "~/.hunspell_personal")
+;; (setq ispell-personal-dictionary "~/.hunspell_personal")
 ;; The personal dictionary file has to exist, otherwise hunspell will
 ;; silently not use it.
 #+end_src
@@ -116,15 +119,15 @@ to work properly.
 So I’m switching manually:
 
 #+begin_src emacs-lisp :tangle yes
-(defun fd-switch-dictionary()
-(interactive)
-(let* ((dic ispell-current-dictionary)
-    (change (if (string= dic "deutsch8") "english" "deutsch8")))
-(ispell-change-dictionary change)
-(message "Dictionary switched from %s to %s" dic change)
-))
+;; (defun fd-switch-dictionary()
+;; (interactive)
+;; (let* ((dic ispell-current-dictionary)
+;;     (change (if (string= dic "deutsch8") "english" "deutsch8")))
+;; (ispell-change-dictionary change)
+;; (message "Dictionary switched from %s to %s" dic change)
+;; ))
 
-(global-set-key (kbd "<f9>")   'fd-switch-dictionary)
+;; (global-set-key (kbd "<f9>")   'fd-switch-dictionary)
 #+end_src
 
 ** Turn off smartparens
@@ -201,7 +204,7 @@ I'm going back and forth between relative line numbers and no line numbers.
       doom-font (font-spec :family "monospace" :size 15)
       doom-theme 'doom-one
       doom-enable-brighter-comments 1
-      +doom-dashboard-banner-file (expand-file-name "logo.png" doom-private-dir)
+      +doom-dashboard-banner-file (expand-file-name "logo.png" doom-user-dir)
       )
 ;; (set-face-foreground 'font-lock-comment-face "#fc0")
 #+end_src
@@ -249,6 +252,13 @@ Center text:
   (setq olivetti-body-width 0.7)
   (setq olivetti-minimum-body-width 90))
 (add-hook 'org-mode-hook #'olivetti-mode)
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+(map!
+:leader
+:desc "toggle olivetti-mode" "t o" #'olivetti-mode
+)
 #+end_src
 
 ** Hide emphasis and sub/superscript markers
@@ -349,6 +359,8 @@ Preview LaTeX environments in org buffers, mostly adapted from [[https://tecosau
   (setq org-preview-latex-default-process 'dvisvgm)
   ; make LaTex snippets look better:
   (setq org-highlight-latex-and-related '(native script entities))
+  ; automatically preview latex when file is opened:
+  (setq org-startup-latex-with-latex-preview t) 
 )
 #+end_src
 
@@ -364,7 +376,11 @@ Customize rendering of LaTeX fragments:
 \\usepackage[makeroom]{cancel}
 \\usepackage{qtree}
 \\usepackage{booktabs}
+
 \\newcommand{\\sem}[2][]{\\mbox{$[\\![ \#2 ]\\!]^{\#1}$}}
+\\newcommand{\\Fr}[1][]{\\mathfrak{\#1}}
+\\newcommand{\\Sc}[1][]{\\mathfrak{\#1}}
+\\renewcommand{\\t}[1]{\\ensuremath{\\langle #1 \\makebox[.2ex]{}\\rangle}}
 
 \\pagestyle{empty}
 \\setlength{\\textwidth}{\\paperwidth}
@@ -439,7 +455,7 @@ The company package suggests completions for words. I rarely use this.
 (after! company
   (setq company-idle-delay 2
         company-minimum-prefix-length 1)
-  (setq company-show-numbers t)
+  (setq company-show-quick-access t)
   ;; only autocomplete words, not numerals:
   (setq company-dabbrev-char-regexp "[A-z:-]")
   ;; make aborting less annoying:
@@ -491,10 +507,9 @@ I use SPC  - to quickly access the project files. (This doesn't seem work if
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
-  (setq org-todo-keywords '((sequence "TODO(t)" "PROJ(p)" "APPT(a)" "WAIT(w)" "|" "DONE(d)" "CANCELLED(c)")))
-  (setq org-todo-keyword-faces '(("APPT" . +org-todo-active)
-                                 ("WAIT" . +org-todo-onhold)
-                                 ("PROJ" . +org-todo-project)))
+  (setq org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "PROG(p)" "WAIT(w)" "|" "DONE(d)" "CANC(c)")))
+  (setq org-todo-keyword-faces '(("PROG" . +org-todo-active)
+                                 ("WAIT" . +org-todo-onhold)))
   )
 #+end_src
 
@@ -733,7 +748,7 @@ SCHEDULED: <%%(diary-last-day-of-month date)>
                            "\n* TODO %?" :empty-lines 1)
           ("tr" "Research (research.org)" entry (file+headline "research.org" "Single Tasks")
                            "\n* TODO [#B] %?" :empty-lines 1)
-          ("ta" "Uni Admin(admin.org)" entry (file+headline "admin.org" "Single Tasks")
+          ("ta" "Uni Admin (admin.org)" entry (file+headline "admin.org" "Single Tasks")
                            "\n* TODO [#B] %?" :empty-lines 1)
           ("to" "Philosophical Progress (opp.org)" entry (file+headline "opp.org" "Tasks")
                            "\n* TODO [#B] %?  %(org-set-tags \"prog\")" :empty-lines 1)
@@ -808,6 +823,26 @@ I sometimes like automatic line breaks when I write prose:
    )
 #+end_src
 
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-semantic-linebreaks-in-paragraph ()
+  "Modify the current paragraph by removing line breaks and adding line breaks after punctuation etc."
+  (interactive)
+  (let ((orig-point (point)))
+    (save-excursion
+      (let ((paragraph-start (progn (backward-paragraph) (point)))
+            (paragraph-end (progn (forward-paragraph) (point))))
+        (save-restriction
+          (narrow-to-region paragraph-start paragraph-end)
+          (goto-char (point-min))
+          (while (re-search-forward "\\([^[:cntrl:]]\\)\n *" nil :noerror)
+            (replace-match "\\1 " nil nil))
+          (goto-char (point-min))
+          (while (re-search-forward "\\([.,;:]\\|iff\\|that\\) " nil :noerror)
+            (replace-match "\\1\n" nil)))))
+    (goto-char orig-point)))
+#+end_src
+    
 ** Citations
 
 Citation management used to be a mess. Now it's fairly easy with the new
@@ -941,11 +976,13 @@ bound to C-c l.)
            :if-new (file+head "papers/%<%Y>-${slug}.org"
                     "#+TITLE: ${title}\n\n")
            :unnarrowed t)
-         ;; '("l" "literature note" plain "%?"
-         ;;  :if-new (file+head "literature/${citekey}.org"
-         ;;                     "#+TITLE: ${author-or-editor} ${year} ${title}\n")
-        ))
+         '("l" "literature note" plain "%?"
+           :if-new (file+head "literature/${citekey}.org"
+                    "#+TITLE: ${author-or-editor} ${year} ${title}\n")
+           :unnarrowed t)
+        )
   )
+)
 #+end_src
 
 ** Tags
@@ -1071,6 +1108,7 @@ This function only updates the tags associated with the current post.
    (format "python3 /home/wo/programming/webpplview/org2html.py %s"
            (shell-quote-argument (buffer-file-name))))
   (revert-buffer t t t)
+  (browse-url-firefox "file:///home/wo/programming/webpplview/index.html")
 )
 #+end_src
 
@@ -1348,6 +1386,14 @@ Entry format in bibtex files:
 #+begin_src emacs-lisp :tangle yes
 (setq python-fill-docstring-style 'symmetric)
 (setq python-shell-interpreter "python3")
+#+end_src
+
+** Javascript
+
+Activate javascript mode for webppl files:
+
+#+begin_src emacs-lisp :tangle yes
+(add-to-list 'auto-mode-alist '("\\.wppl\\'" . js2-mode))
 #+end_src
 
 ** Copilot
