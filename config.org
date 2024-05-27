@@ -507,9 +507,15 @@ I use SPC  - to quickly access the project files. (This doesn't seem work if
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
-  (setq org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "PROG(p)" "WAIT(w)" "|" "DONE(d)" "CANC(c)")))
-  (setq org-todo-keyword-faces '(("PROG" . +org-todo-active)
-                                 ("WAIT" . +org-todo-onhold)))
+  (setq org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "ACTV(a)" "WAIT(w)" "URGT(u)" "|" "DONE(d)" "CANC(c)")))
+  (setq org-todo-keyword-faces
+    (quote (("TODO" :foreground "#69f" :weight bold)
+            ("NEXT" :foreground "#6cc" :weight bold)
+            ("ACTV" :foreground "#fc6" :weight bold)
+            ("URGT" :foreground "#f66" :weight bold)
+            ("WAIT" :foreground "#699" :weight bold)
+            ("DONE" :foreground "#676" :weight bold)
+            ("CANC" :foreground "#676" :weight bold))))
   )
 #+end_src
 
@@ -1122,7 +1128,7 @@ customising this process is cumbersome. I need a lot of extra preprocessing and 
   (interactive)
   (save-buffer)
   (async-shell-command
-   (format "python3 /home/wo/notes/papers/org2latex.py %s"
+   (format "org2latex %s"
            (shell-quote-argument (buffer-file-name))))
   (revert-buffer t t t)
 )
@@ -1132,11 +1138,24 @@ customising this process is cumbersome. I need a lot of extra preprocessing and 
 (defun my-org2pdf ()
   (interactive)
   (save-buffer)
-  (async-shell-command
-   (format "python3 /home/wo/notes/papers/org2paper.py %s"
-           (shell-quote-argument (buffer-file-name))))
-  (revert-buffer t t t)
+  (let ((output-dir (concat (file-name-directory (buffer-file-name))
+                            (file-name-base (buffer-file-name)))))
+    (async-shell-command
+     (format "org2pdf %s %s"
+             (shell-quote-argument (buffer-file-name))
+             (shell-quote-argument output-dir)))
+    (revert-buffer t t t)
+  )
 )
+
+;; (defun my-org2pdf ()
+;;   (interactive)
+;;   (save-buffer)
+;;   (async-shell-command
+;;    (format "org2pdf %s"
+;;            (shell-quote-argument (buffer-file-name))))
+;;   (revert-buffer t t t)
+;; )
 #+end_src
 
 #+begin_src emacs-lisp :tangle yes
@@ -1144,7 +1163,18 @@ customising this process is cumbersome. I need a lot of extra preprocessing and 
   (interactive)
   (save-buffer)
   (async-shell-command
-   (format "python3 /home/wo/notes/papers/org2docx.py %s"
+   (format "org2docx %s"
+           (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-org2html ()
+  (interactive)
+  (save-buffer)
+  (async-shell-command
+   (format "org2html %s"
            (shell-quote-argument (buffer-file-name))))
   (revert-buffer t t t)
 )
@@ -1411,9 +1441,22 @@ Accept code completion from copilot; fallback to company:
               ("C-p" . 'copilot-previous-completion)
               ("C-n" . 'copilot-next-completion)
              ))
+; Need Node.js v18+.
+(setq copilot-node-executable "/home/wo/.nvm/versions/node/v18.20.2/bin/node")
+
 (map!
 :leader
 :desc "toggle copilot" "t p" #'copilot-mode
+)
+#+end_src
+
+Prevent copilot warnings in org mode:
+        
+#+begin_src emacs-lisp :tangle yes
+(after! copilot
+  (add-to-list
+   'copilot-indentation-alist
+   '(org-mode 4))
 )
 #+end_src
 

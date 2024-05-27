@@ -50,7 +50,7 @@
 ;; our package manager can't deal with; see raxod502/straight.el#279)
 ;(package! builtin-package :recipe (:branch "develop"))
 
-(package! org :pin "5890ac")
+;(package! org :pin "5890ac")
 
 (package! olivetti)
 (package! org-super-agenda)
@@ -89,15 +89,39 @@
 
 ; github copilot:
 (package! copilot
-  :recipe (:host github :repo "zerolfx/copilot.el" :files ("*.el" "dist")))
+  :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el" "dist")))
+
 
 ; current powerthesaurus version in doom throws 403:
 (unpin! powerthesaurus)
 (package! powerthesaurus
  :recipe (:host github :repo "SavchenkoValeriy/emacs-powerthesaurus"))
 
-; Don't delete trailing whitespace in current line on autosave:
-(package! ws-butler :disable t)
+
+
+;; (package! org-cite-csl-activate
+;;   :recipe (:host github :repo "andras-simonyi/org-cite-csl-activate") :pin "9e68d9204469c674f49a20bdf7ea85da4f4bf720")
+
+;; (package! khoj
+;;   :recipe (:host github :repo "khoj-ai/khoj" :files (:defaults "src/interface/emacs/khoj.el")))
+
+; auto-activating snippets
+;; (package! aas :recipe (:host github :repo "ymarco/auto-activating-snippets")
+;;   :pin "e92b5cffa4e87c221c24f3e72ae33959e1ec2b68")
+
+;; (use-package! aas
+;;   :commands aas-mode)
+
+(package! org-appear :recipe (:host github :repo "awth13/org-appear"))
+
+;   :pin "eb9f9db40aa529fe4b977235d86494b115281d17")
+;;(package! org-appear :recipe (:local-repo "/home/wo/programming/org-appear"))
+
+
+
+
+
+;; (package! ws-butler :disable t)
 (package! mu4e-alert :disable t)
 ;; (package! mu4e-contrib)
 
