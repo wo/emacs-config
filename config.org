@@ -930,6 +930,160 @@ bound to C-c l.)
     (when custom-id
       (org-insert-link nil (concat "#" custom-id) custom-id))))
 #+end_src
+        
+** Add log entries to current org project
+
+This adds a 'Log' section to the bottom of the current org file, and inserts a new entry with today's date.
+
+When working on a larger project, either a paper or a software project, I like
+to keep a log of what I've done, so that, for example, I can skim the log to
+resume the project after a break, or so that I can remember why I made a certain
+choice.
+
+#+begin_src emacs-lisp :tangle yes
+(defun insert-log-entry ()
+  "Inserts a log entry with today's date at the end of the current org file."
+  (interactive)
+  (save-excursion
+    (goto-char (point-max))
+    (unless (org-at-heading-p)
+      (org-return))
+    (if (re-search-backward "^\\* Log\\b" nil t)
+        (progn
+          (goto-char (point-max))
+          (unless (org-at-heading-p)
+            (org-return))
+          (insert "** " (format-time-string "[%Y-%m-%d %a]") "\n"))
+      (progn
+        (insert "* Log\n** " (format-time-string "[%Y-%m-%d %a]") "\n"))))
+  (goto-char (point-max))
+  (evil-insert-state)
+)
+
+(map! :leader
+      :desc "Insert Log Entry"
+      "i l" #'insert-log-entry)
+#+end_src
+
+** Functions to submit and update blog posts
+
+I write my blog posts as org-roam notes. This function converts a note to HTML
+and submits it to my server. If the relevant post already exists, it updates it.
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-post-to-server ()
+  (interactive)
+  (save-buffer)
+  (shell-command
+   (format "python3 /home/wo/notes/blog/post_to_server.py %s"
+           (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
+#+end_src
+
+This function only updates the tags associated with the current post.
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-update-tags-on-server ()
+  (interactive)
+  (save-buffer)
+  (shell-command
+   (format "python3 /home/wo/notes/blog/update_tags_on_server.py %s"
+           (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
+#+end_src
+
+** A function to display org notes with WebPPL blocks in the browser
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-webpplify ()
+  (interactive)
+  (save-buffer)
+  (shell-command
+   (format "python3 /home/wo/programming/webpplview/org2html.py %s"
+           (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+  (browse-url-firefox "file:///home/wo/programming/webpplview/index.html")
+)
+#+end_src
+
+** Functions to convert org notes into LaTex, PDF, or Word format
+
+Emacs has built-in functions for exporting org documents as LaTeX or pdf. But
+customising this process is cumbersome. I need a lot of extra preprocessing and postprocessing to make the PDFs come out as I want, so I've written a python script that does the conversions (with the help of pandoc).
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-org2latex ()
+  (interactive)
+  (save-buffer)
+  (async-shell-command
+   (format "org2latex %s"
+           (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-org2pdf ()
+  (interactive)
+  (save-buffer)
+  (let ((output-dir (concat (file-name-directory (buffer-file-name))
+                            (file-name-base (buffer-file-name)))))
+    (async-shell-command
+     (format "org2pdf %s %s"
+             (shell-quote-argument (buffer-file-name))
+             (shell-quote-argument output-dir)))
+    (revert-buffer t t t)
+  )
+)
+
+;; (defun my-org2pdf ()
+;;   (interactive)
+;;   (save-buffer)
+;;   (async-shell-command
+;;    (format "org2pdf %s"
+;;            (shell-quote-argument (buffer-file-name))))
+;;   (revert-buffer t t t)
+;; )
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-org2docx ()
+  (interactive)
+  (save-buffer)
+  (async-shell-command
+   (format "org2docx %s"
+           (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-org2html ()
+  (interactive)
+  (save-buffer)
+  (async-shell-command
+   (format "org2html %s"
+           (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
+#+end_src
+
+A similar script extracts and processes handouts, which I can write in the
+same org file in which I write a paper:
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-org2handout ()
+  (interactive)
+  (save-buffer)
+  (call-process-shell-command
+   (format "org2handout %s"
+           (shell-quote-argument (buffer-file-name)))
+   nil 0)
+  (revert-buffer t t t)
+)
+#+end_src
 
 * Zettel (org-roam)
 
@@ -1073,126 +1227,6 @@ This function replaces the content of the current buffer.
    "*tex2org Error Buffer*"
    ; show error buffer:
    t))
-#+end_src
-
-** Functions to submit and update blog posts
-
-I write my blog posts as org-roam notes. This function converts a note to HTML
-and submits it to my server. If the relevant post already exists, it updates it.
-
-#+begin_src emacs-lisp :tangle yes
-(defun my-post-to-server ()
-  (interactive)
-  (save-buffer)
-  (shell-command
-   (format "python3 /home/wo/notes/blog/post_to_server.py %s"
-           (shell-quote-argument (buffer-file-name))))
-  (revert-buffer t t t)
-)
-#+end_src
-
-This function only updates the tags associated with the current post.
-
-#+begin_src emacs-lisp :tangle yes
-(defun my-update-tags-on-server ()
-  (interactive)
-  (save-buffer)
-  (shell-command
-   (format "python3 /home/wo/notes/blog/update_tags_on_server.py %s"
-           (shell-quote-argument (buffer-file-name))))
-  (revert-buffer t t t)
-)
-#+end_src
-
-** A function to display org notes with WebPPL blocks in the browser
-
-#+begin_src emacs-lisp :tangle yes
-(defun my-webpplify ()
-  (interactive)
-  (save-buffer)
-  (shell-command
-   (format "python3 /home/wo/programming/webpplview/org2html.py %s"
-           (shell-quote-argument (buffer-file-name))))
-  (revert-buffer t t t)
-  (browse-url-firefox "file:///home/wo/programming/webpplview/index.html")
-)
-#+end_src
-
-** Functions to convert org notes into LaTex, PDF, or Word format
-
-Emacs has built-in functions for exporting org documents as LaTeX or pdf. But
-customising this process is cumbersome. I need a lot of extra preprocessing and postprocessing to make the PDFs come out as I want, so I've written a python script that does the conversions (with the help of pandoc).
-
-#+begin_src emacs-lisp :tangle yes
-(defun my-org2latex ()
-  (interactive)
-  (save-buffer)
-  (async-shell-command
-   (format "org2latex %s"
-           (shell-quote-argument (buffer-file-name))))
-  (revert-buffer t t t)
-)
-#+end_src
-
-#+begin_src emacs-lisp :tangle yes
-(defun my-org2pdf ()
-  (interactive)
-  (save-buffer)
-  (let ((output-dir (concat (file-name-directory (buffer-file-name))
-                            (file-name-base (buffer-file-name)))))
-    (async-shell-command
-     (format "org2pdf %s %s"
-             (shell-quote-argument (buffer-file-name))
-             (shell-quote-argument output-dir)))
-    (revert-buffer t t t)
-  )
-)
-
-;; (defun my-org2pdf ()
-;;   (interactive)
-;;   (save-buffer)
-;;   (async-shell-command
-;;    (format "org2pdf %s"
-;;            (shell-quote-argument (buffer-file-name))))
-;;   (revert-buffer t t t)
-;; )
-#+end_src
-
-#+begin_src emacs-lisp :tangle yes
-(defun my-org2docx ()
-  (interactive)
-  (save-buffer)
-  (async-shell-command
-   (format "org2docx %s"
-           (shell-quote-argument (buffer-file-name))))
-  (revert-buffer t t t)
-)
-#+end_src
-
-#+begin_src emacs-lisp :tangle yes
-(defun my-org2html ()
-  (interactive)
-  (save-buffer)
-  (async-shell-command
-   (format "org2html %s"
-           (shell-quote-argument (buffer-file-name))))
-  (revert-buffer t t t)
-)
-#+end_src
-
-A similar script extracts and processes handouts, which I can write in the
-same org file in which I write a paper:
-
-#+begin_src emacs-lisp :tangle yes
-(defun my-org2handout ()
-  (interactive)
-  (save-buffer)
-  (call-process-shell-command
-   (format "python3 /home/wo/notes/papers/org2handout.py %s"
-           (shell-quote-argument (buffer-file-name)))
-   nil 0)
-  (revert-buffer t t t)
-)
 #+end_src
 
 * Key bindings
