@@ -130,13 +130,24 @@ So I’m switching manually:
 ;; (global-set-key (kbd "<f9>")   'fd-switch-dictionary)
 #+end_src
 
-** Turn off smartparens
+** Turn off smartparens in org
 
 I get confused by automatically inserted closing brackets and parentheses.
 
 #+begin_src emacs-lisp :tangle yes
-(remove-hook 'doom-first-buffer-hook #'smartparens-global-mode)
+;; (remove-hook 'doom-first-buffer-hook #'smartparens-global-mode)
+(add-hook 'org-mode-hook 'turn-off-smartparens-mode)
 #+end_src
+
+** Fix ws-butler
+
+Don't erase whitespace just before cursor on auto-save:
+
+#+begin_src emacs-lisp :tangle yes
+(after! ws-butler
+  (setq ws-butler-keep-whitespace-before-point t))
+#+end_src
+
 
 ** A function to rename the current file and buffer
 
