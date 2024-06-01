@@ -873,8 +873,14 @@ org-internal citation format and the citar package.
         citar-notes-paths '("~/notes/literature/")
         org-cite-global-bibliography '("~/notes/literature.bib")
         citar-org-roam-note-title-template "${author editor} ${date year issued:4} ${title}"
+        citar-org-roam-cpature-template-key "l"
         citar-org-roam-subdir "literature")
 )
+(use-package citar-org-roam
+  :after (citar org-roam)
+  :config (citar-org-roam-mode))
+(after! oc-csl
+  (setq org-cite-csl-styles-dir "~/Zotero/styles"))
 #+end_src
 
 ** Update the references database from zotero
