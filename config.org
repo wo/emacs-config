@@ -277,8 +277,10 @@ Hide slashes and stars:
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
-  (setq org-hide-emphasis-markers t)
+  ;; (setq org-hide-emphasis-markers t)
+  (setq org-hide-emphasis-markers nil)
   )
+
 #+end_src
 
 Add colour to italics:
