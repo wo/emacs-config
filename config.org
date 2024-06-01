@@ -1497,6 +1497,7 @@ Accept code completion from copilot; fallback to company:
 #+begin_src emacs-lisp :tangle yes
 (use-package! copilot
   :hook (prog-mode . copilot-mode)
+  :hook (org-mode . copilot-mode)
   :bind (:map copilot-completion-map
               ("<tab>" . 'copilot-accept-completion)
               ("TAB" . 'copilot-accept-completion)
@@ -1505,6 +1506,10 @@ Accept code completion from copilot; fallback to company:
               ("C-p" . 'copilot-previous-completion)
               ("C-n" . 'copilot-next-completion)
              ))
+  :config
+  (setq copilot-max-char -1)
+  (setq copilot-indent-offset-warning-disable t)
+
 ; Need Node.js v18+.
 (setq copilot-node-executable "/home/wo/.nvm/versions/node/v18.20.2/bin/node")
 
