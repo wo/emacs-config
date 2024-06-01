@@ -65,7 +65,9 @@ Not sure why this stopped working by default.
 
 #+begin_src emacs-lisp :tangle yes
 (auto-save-visited-mode 1)
-
+(setq auto-save-timeout 20)
+(setq auto-save-file-name-transforms
+  `((".*" "~/.emacsbup/" t)))
 (setq backup-by-copying t      ; don't clobber symlinks
       backup-directory-alist '(("." . "~/.emacsbup"))
       delete-old-versions t
@@ -73,10 +75,7 @@ Not sure why this stopped working by default.
       vc-make-backup-files t ; backup files even if version controlled
       kept-new-versions 6
       kept-old-versions 2
-      version-control t)       ; use versioned backups
-
-(setq auto-save-file-name-transforms
-  `((".*" "~/.emacsbup/" t)))
+      version-control t) ; use versioned backups
 #+end_src
 
 ** Spell-checking 
