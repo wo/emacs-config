@@ -1224,6 +1224,18 @@ This updates the buffer name, filename, and links. (From [[https://org-roam.disc
               (kill-buffer)))))))
 #+end_src
 
+** A function to remove first names from literature note titles
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-remove-first-names-region (start end)
+  "Remove first names from a region of text in 'Lastname, Firstname' format."
+  (interactive "r") ; 'r' means this function operates on a region
+  (let* ((input-string (buffer-substring start end))
+         (result (replace-regexp-in-string ", [^ ]+\\b" "" input-string)))
+    (delete-region start end)
+    (insert result)))
+#+end_src
+
 ** A function to convert LaTeX notes to org format
 
 This function replaces the content of the current buffer.
