@@ -867,21 +867,28 @@ Citation management used to be a mess. Now it's fairly easy with the new
 org-internal citation format and the citar package.
 
 #+begin_src emacs-lisp :tangle yes
-(after! citar
-  (setq citar-bibliography '("~/notes/literature.bib")
-        citar-library-paths '("~/papers/[A-Z]/")
-        citar-notes-paths '("~/notes/literature/")
-        org-cite-global-bibliography '("~/notes/literature.bib")
-        citar-org-roam-note-title-template "${author editor} ${date year issued:4} ${title}"
-        citar-org-roam-cpature-template-key "l"
-        citar-org-roam-subdir "literature")
-)
-(use-package citar-org-roam
-  :after (citar org-roam)
-  :config (citar-org-roam-mode))
+(use-package! citar
+  :hook
+  (LaTeX-mode . citar-capf-setup)
+  (org-mode . citar-capf-setup)) ; doesn't work :(
+  :config
+  (setq! citar-bibliography '("~/notes/literature.bib")
+         citar-library-paths '("~/papers/[A-Z]/")
+         citar-notes-paths '("~/notes/literature/")
+         org-cite-global-bibliography '("~/notes/literature.bib")
+         citar-org-roam-note-title-template "${author editor:*%sn} ${date year issued:4} ${title}"
+         citar-org-roam-cpature-template-key "l"
+         citar-org-roam-subdir "literature"
+  )
+;; (use-package citar-org-roam
+;;   :after (citar org-roam)
+;;   :config (citar-org-roam-mode))
 (after! oc-csl
   (setq org-cite-csl-styles-dir "~/Zotero/styles"))
 #+end_src
+
+#+RESULTS:
+: ~/Zotero/styles
 
 ** Update the references database from zotero
 
@@ -1222,18 +1229,6 @@ This updates the buffer name, filename, and links. (From [[https://org-roam.disc
             (save-buffer)
             (unless file-open
               (kill-buffer)))))))
-#+end_src
-
-** A function to remove first names from literature note titles
-
-#+begin_src emacs-lisp :tangle yes
-(defun my-remove-first-names-region (start end)
-  "Remove first names from a region of text in 'Lastname, Firstname' format."
-  (interactive "r") ; 'r' means this function operates on a region
-  (let* ((input-string (buffer-substring start end))
-         (result (replace-regexp-in-string ", [^ ]+\\b" "" input-string)))
-    (delete-region start end)
-    (insert result)))
 #+end_src
 
 ** A function to convert LaTeX notes to org format
