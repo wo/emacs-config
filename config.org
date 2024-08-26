@@ -221,7 +221,6 @@ I'm going back and forth between relative line numbers and no line numbers.
       doom-enable-brighter-comments 1
       +doom-dashboard-banner-file (expand-file-name "logo.png" doom-user-dir)
       )
-;; (set-face-foreground 'font-lock-comment-face "#fc0")
 #+end_src
 
 ** Colour adjustments for org
@@ -302,6 +301,20 @@ Properly display sub- and superscripts:
 (after! org
   (setq org-pretty-entities-include-sub-superscripts t)
   )
+#+end_src
+
+** Add colour to comment blocks and make comments brigher
+
+#+begin_src emacs-lisp :tangle yes
+(defun highlight-org-comment-blocks-with-comment-face ()
+  (set-face-foreground 'font-lock-comment-face "#99aabb")
+  (font-lock-add-keywords nil
+    '(("^[ \t]*#\\+begin_comment[ \t]*$" 0 'font-lock-comment-face t)
+      ("^[ \t]*#\\+end_comment[ \t]*$" 0 'font-lock-comment-face t)
+      ("^[ \t]*#\\+begin_comment[ \t]*\\([[:space:]\n]*\\(.\\|\n\\)*?\\)[ \t]*#\\+end_comment[ \t]*$"
+       (1 'font-lock-comment-face t)))))
+
+(add-hook 'org-mode-hook 'highlight-org-comment-blocks-with-comment-face)
 #+end_src
 
 ** Disable strikethrough rendering
