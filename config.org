@@ -25,14 +25,6 @@ keep track of projects and appointments. Most of this happens in org-mode.
 (setq projectile-project-search-path '("~/words/" "~/notes/" "~/programming/"))
 #+end_src
 
-** Make sure recent files list is updated
-
-Not sure why this stopped working by default.
-
-#+begin_src emacs-lisp :tangle yes
-(add-hook 'find-file-hook 'recentf-save-list)
-#+end_src
-
 ** Make Y yank the whole line
 
 #+begin_src emacs-lisp :tangle yes
@@ -134,19 +126,32 @@ So I’m switching manually:
 I get confused by automatically inserted closing brackets and parentheses.
 
 #+begin_src emacs-lisp :tangle yes
-;; (remove-hook 'doom-first-buffer-hook #'smartparens-global-mode)
-(add-hook 'org-mode-hook 'turn-off-smartparens-mode)
+(remove-hook 'doom-first-buffer-hook #'smartparens-global-mode)
+;; (add-hook 'org-mode-hook 'turn-off-smartparens-mode)
 #+end_src
 
 ** Fix ws-butler
 
-Don't erase whitespace just before cursor on auto-save:
+Don't erase whitespace just before cursor on auto-save, and prevent resulting
+error message, from [[https://github.com/lewang/ws-butler/issues/44][here]]:
 
 #+begin_src emacs-lisp :tangle yes
 (after! ws-butler
-  (setq ws-butler-keep-whitespace-before-point t))
+  (setq ws-butler-keep-whitespace-before-point t)
+  (setq ws-butler-trim-predicate
+      (lambda (beg end)
+        (let* ((current-line (line-number-at-pos))
+               (beg-line (line-number-at-pos beg))
+               (end-line (line-number-at-pos end))
+               ;; Assuming the use of evil-mode for insert mode detection. Adjust if using a different system.
+               (in-insert-mode (and (bound-and-true-p evil-mode)
+                                    (eq 'insert evil-state))))
+          ;; Return true (allow trimming) unless in insert mode and the current line is within the region.
+          (not (and in-insert-mode
+                    (>= current-line beg-line)
+                    (<= current-line end-line))))))
+)
 #+end_src
-
 
 ** A function to rename the current file and buffer
 
@@ -589,12 +594,16 @@ Basic config:
 Show birthdays:
 
 #+begin_src emacs-lisp :tangle yes
+;; (use-package! memoize
+;;  :ensure t)
+
 (use-package! org-contacts
-  :after org
-  :init
-  (setq org-contacts-birthday-property "BIRTHDAY")
-  (setq org-contacts-files '("~/org/contacts.org"))
-  )
+ :after org
+ :after memoize
+ :init
+ (setq org-contacts-birthday-property "BIRTHDAY")
+ (setq org-contacts-files '("~/org/contacts.org"))
+ )
 #+end_src
 
 My custom agenda view:
@@ -1492,7 +1501,7 @@ Accept code completion from copilot; fallback to company:
 #+begin_src emacs-lisp :tangle yes
 (use-package! copilot
   :hook (prog-mode . copilot-mode)
-  :hook (org-mode . copilot-mode)
+  ;; :hook (org-mode . copilot-mode)
   :bind (:map copilot-completion-map
               ("<tab>" . 'copilot-accept-completion)
               ("TAB" . 'copilot-accept-completion)
