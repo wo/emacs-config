@@ -1078,21 +1078,21 @@ customising this process is cumbersome. I need a lot of extra preprocessing and 
   (let ((output-dir (concat (file-name-directory (buffer-file-name))
                             (file-name-base (buffer-file-name)))))
     (async-shell-command
-     (format "org2pdf %s %s"
+     (format "org2pdf --template ~/notes/papers/.template.tex %s %s"
              (shell-quote-argument (buffer-file-name))
              (shell-quote-argument output-dir)))
     (revert-buffer t t t)
   )
 )
 
-;; (defun my-org2pdf ()
-;;   (interactive)
-;;   (save-buffer)
-;;   (async-shell-command
-;;    (format "org2pdf %s"
-;;            (shell-quote-argument (buffer-file-name))))
-;;   (revert-buffer t t t)
-;; )
+(defun my-org2handout ()
+  (interactive)
+  (save-buffer)
+  (async-shell-command
+  (format "org2pdf --template ~/notes/papers/.template-handout.tex %s"
+          (shell-quote-argument (buffer-file-name))))
+  (revert-buffer t t t)
+)
 #+end_src
 
 #+begin_src emacs-lisp :tangle yes
@@ -1113,21 +1113,6 @@ customising this process is cumbersome. I need a lot of extra preprocessing and 
   (async-shell-command
    (format "org2html %s"
            (shell-quote-argument (buffer-file-name))))
-  (revert-buffer t t t)
-)
-#+end_src
-
-A similar script extracts and processes handouts, which I can write in the
-same org file in which I write a paper:
-
-#+begin_src emacs-lisp :tangle yes
-(defun my-org2handout ()
-  (interactive)
-  (save-buffer)
-  (call-process-shell-command
-   (format "org2handout %s"
-           (shell-quote-argument (buffer-file-name)))
-   nil 0)
   (revert-buffer t t t)
 )
 #+end_src
