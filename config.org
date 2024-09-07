@@ -1092,10 +1092,14 @@ customising this process is cumbersome. I need a lot of extra preprocessing and 
 (defun my-org2latex ()
   (interactive)
   (save-buffer)
-  (async-shell-command
-   (format "org2latex %s"
-           (shell-quote-argument (buffer-file-name))))
-  (revert-buffer t t t)
+  (let ((output-dir (concat (file-name-directory (buffer-file-name))
+                            (file-name-base (buffer-file-name)))))
+    (async-shell-command
+     (format "org2pdf --latex --template ~/notes/papers/.template.tex %s %s"
+             (shell-quote-argument (buffer-file-name))
+             (shell-quote-argument output-dir)))
+    (revert-buffer t t t)
+  )
 )
 #+end_src
 
@@ -1127,10 +1131,14 @@ customising this process is cumbersome. I need a lot of extra preprocessing and 
 (defun my-org2docx ()
   (interactive)
   (save-buffer)
-  (async-shell-command
-   (format "org2docx %s"
-           (shell-quote-argument (buffer-file-name))))
-  (revert-buffer t t t)
+  (let ((output-dir (concat (file-name-directory (buffer-file-name))
+                            (file-name-base (buffer-file-name)))))
+    (async-shell-command
+     (format "org2docx %s %s"
+             (shell-quote-argument (buffer-file-name))
+             (shell-quote-argument output-dir)))
+    (revert-buffer t t t)
+  )
 )
 #+end_src
 
