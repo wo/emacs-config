@@ -549,40 +549,6 @@ I use SPC  - to quickly access the project files. (This doesn't seem work if
   )
 #+end_src
 
-** Priorities
-
-I use A-C priorities to plan my workdays and weeks.
-
-Unfortunately this means that if I'm not currently working on a project because
-I'm busy with other things, no task in that project can have a priority greater
-than D. So I use D-G priorities.
-
-#+begin_src emacs-lisp :tangle yes
-(after! org
-  (setq org-lowest-priority ?G)
-  )
-#+end_src
-
-** Refiling
-
-Create new parent nodes when refiling by adding /New Heading in the prompt:
-
-#+begin_src emacs-lisp :tangle yes
-(after! org
-  (setq org-refile-allow-creating-parent-nodes 'confirm)
-  )
-#+end_src
-
-I need to learn how to refile better.
-
-#+begin_src emacs-lisp :tangle no
-;; org-refile:
-;; (setq org-refile-targets (quote (("projects.org" :maxlevel . 5)
-;;                                  ("archived_projects.org" :maxlevel . 5))))
-;; (setq org-outline-path-complete-in-steps nil         ; Refile in a single go
-;;       org-refile-use-outline-path t)                  ; Show full paths for refiling
-#+end_src
-
 ** Agenda
 
 Basic config:
@@ -645,30 +611,32 @@ My custom agenda view:
             (alltodo "" ((org-agenda-overriding-header "")
                          (org-super-agenda-groups
                           '(
-                            ;; (:name "Today" :priority "A")
-                            (:name "Write" :and(:tag "write" :priority>= "B"))
-                            (:name "Read" :and(:tag "read" :priority>= "B"))
-                            ;; (:name "Priority B" :priority "B")
-                            (:name "Programming" :and(:tag "prog" :priority>= "B"))
-                            (:name "Frogs" :and(:tag "frog" :priority>= "B"))
-                            (:name "Other tasks" :priority>= "B")
+                            (:name "Write" :and(:tag "write" :todo "ACTV"))
+                            (:name "Read" :and(:tag "read" :todo "ACTV"))
+                            (:name "Programming" :and(:tag "prog" :todo "ACTV"))
+                            (:name "Other tasks" :todo "ACTV")
                             (:name "Routines" :tag "routine")
-                            (:name "Lower priority" :priority>= "C")
+                            (:name "Deadlines" :deadline t :order 2)
+                            (:name "Next: Write" :and(:tag "write" :todo "NEXT"))
+                            (:name "Next: Read" :and(:tag "read" :todo "NEXT"))
+                            (:name "Next: Programming" :and(:tag "prog" :todo "NEXT"))
+                            (:name "Next: Other tasks" :todo "NEXT")
                             ;; (:name "To refile" :file-path "inbox.org")
                             ;; (:name "Active projects"
                             ;;        :file-path "journal/")
-                            ;; (:name "Deadlines"
-                            ;;        :deadline t
-                            ;;        :order 2)
                             ;; (:name "Future Schedule"
                             ;;        :scheduled future
                             ;;        :order 8)
                             ;; (:name "Projects"
                             ;;        :tag "project"
                             ;;        :order 5)
-                            (:discard (:anything t))))))))
-                            ;; (:discard (:not (:todo "TODO")))))))))
+                            (:discard (:anything t))
+                            )
+                          )
+                         )
             ))
+          ))
+  )
 
   (custom-set-faces!
     '(org-agenda-day :foreground "#ff0000"))
@@ -815,15 +783,15 @@ SCHEDULED: <%%(diary-last-day-of-month date)>
           ("tt" "General (todo.org)" entry (file+headline "todo.org" "Single Tasks")
                            "\n* TODO %?" :empty-lines 1)
           ("tr" "Research (research.org)" entry (file+headline "research.org" "Single Tasks")
-                           "\n* TODO [#B] %?" :empty-lines 1)
+                           "\n* TODO %?" :empty-lines 1)
           ("ta" "Uni Admin (admin.org)" entry (file+headline "admin.org" "Single Tasks")
-                           "\n* TODO [#B] %?" :empty-lines 1)
+                           "\n* TODO %?" :empty-lines 1)
           ("to" "Philosophical Progress (opp.org)" entry (file+headline "opp.org" "Tasks")
-                           "\n* TODO [#B] %?  %(org-set-tags \"prog\")" :empty-lines 1)
+                           "\n* TODO %?  %(org-set-tags \"prog\")" :empty-lines 1)
           ("ti" "Investing (investing.org)" entry (file+headline "investing.org" "App Tasks")
-                           "\n* TODO [#B] %?  %(org-set-tags \"prog\")" :empty-lines 1)
+                           "\n* TODO %?  %(org-set-tags \"prog\")" :empty-lines 1)
           ("tp" "Tree Proof Generator (trees-todo.org)" entry (file+headline "tpg.org" "Tasks")
-                           "\n* TODO [#B] %?  %(org-set-tags \"prog\")" :empty-lines 1)
+                           "\n* TODO %?  %(org-set-tags \"prog\")" :empty-lines 1)
           ("s" "scheduled task (schedule.org)" entry (file+headline "schedule.org" "Tickler")
                            "\n* TODO %?\nSCHEDULED: %^t\n" :empty-lines 1)
           ("b" "buy (add to shopping list in todo.org)" entry (file+headline "todo.org" "Shopping list")
@@ -858,6 +826,26 @@ see [[https://github.com/doomemacs/doomemacs/issues/5714]]
       (when old-org-capture-current-plist
         (setq-local org-capture-current-plist old-org-capture-current-plist)
         (org-capture-mode +1)))))
+#+end_src
+
+** Refiling
+
+Create new parent nodes when refiling by adding /New Heading in the prompt:
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-refile-allow-creating-parent-nodes 'confirm)
+  )
+#+end_src
+
+I need to learn how to refile better.
+
+#+begin_src emacs-lisp :tangle no
+;; org-refile:
+;; (setq org-refile-targets (quote (("projects.org" :maxlevel . 5)
+;;                                  ("archived_projects.org" :maxlevel . 5))))
+;; (setq org-outline-path-complete-in-steps nil         ; Refile in a single go
+;;       org-refile-use-outline-path t)                  ; Show full paths for refiling
 #+end_src
 
 * Writing in org-mode
