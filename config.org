@@ -757,6 +757,34 @@ Display UK bank holidays only (from https://emacs.stackexchange.com/questions/44
 
 #+end_src
 
+** Alerts
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-appt-send-notification (min-to-app new-time msg)
+  "Send a notification using notify-send."
+  (call-process "notify-send" nil 0 nil
+                "-u" "critical" ;; Set urgency to critical
+                "-t" "10000"    ;; Show notification for 10 seconds
+                (format "Appointment in %s minutes" min-to-app) msg))
+
+(setq appt-disp-window-function 'my-appt-send-notification)
+(setq appt-message-warning-time 15)  ;; first notification 15 minutes before
+(setq appt-display-interval 10)  ;; second notification 5 minutes before
+
+(defun my-refresh-appt ()
+  "Refresh appointments from the Org agenda."
+  (setq appt-time-msg-list nil)
+  (org-agenda-to-appt))
+
+(appt-activate 1)
+
+; refresh appt on startup, after creating the agenda, and every hour:
+(my-refresh-appt)
+(add-hook 'org-agenda-finalize-hook 'my-refresh-appt)
+(run-at-time "24:01" 3600 'my-refresh-appt)
+
+#+end_src
+
 ** A function to schedule tasks for the last day of the month
 
 From [[https://emacs.stackexchange.com/questions/31683/schedule-org-task-for-last-day-of-every-month][stackoverflow]]. Usage:

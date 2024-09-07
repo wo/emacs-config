@@ -73,6 +73,8 @@
 ;; (package! citar)
 ;; (package! citar-embark)
 
+(package! org-wild-notifier)
+
 ;; (package! helm-org-contacts
 ;;   :recipe (:host github :repo "tmalsburg/helm-org-contacts"))
 
