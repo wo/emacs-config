@@ -848,6 +848,26 @@ I need to learn how to refile better.
 ;;       org-refile-use-outline-path t)                  ; Show full paths for refiling
 #+end_src
 
+** A function to restore layout for weekly review
+
+#+begin_src emacs-lisp :tangle yes
+(defun my-review-layout ()
+  (interactive)
+  (delete-other-windows) ;; Start with a clean slate
+  (set-window-buffer (selected-window) (find-file-noselect "~/org/logbook.org"))
+  (split-window-right) ;; Two columns
+  (other-window 1)
+  (set-window-buffer (selected-window) (find-file-noselect "~/org/journal/2025-phil.org"))
+  (evil-window-split)
+  (other-window 1)
+  (set-window-buffer (selected-window) (find-file-noselect "~/org/journal/2025-neben.org"))
+  (evil-window-split)
+  (other-window 1)
+  (set-window-buffer (selected-window) (find-file-noselect "~/org/journal/2025-privat.org"))
+  (other-window 1)
+)
+#+end_src
+
 * Writing in org-mode
 
 ** Writeroom mode
