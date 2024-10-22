@@ -1083,39 +1083,38 @@ customising this process is cumbersome. I need a lot of extra preprocessing and 
   (let ((output-dir (concat (file-name-directory (buffer-file-name))
                             (file-name-base (buffer-file-name)))))
     (async-shell-command
-     (format "org2pdf --latex --template ~/notes/papers/.template.tex %s %s"
+     (format "org2pdf --latex --template ~/notes/papers/.article-template.tex %s %s"
              (shell-quote-argument (buffer-file-name))
              (shell-quote-argument output-dir)))
     (revert-buffer t t t)
   )
 )
-#+end_src
 
-#+begin_src emacs-lisp :tangle yes
 (defun my-org2pdf ()
-  (interactive)
-  (save-buffer)
-  (let ((output-dir (concat (file-name-directory (buffer-file-name))
-                            (file-name-base (buffer-file-name)))))
-    (async-shell-command
-     (format "org2pdf --template ~/notes/papers/.template.tex %s %s"
-             (shell-quote-argument (buffer-file-name))
-             (shell-quote-argument output-dir)))
-    (revert-buffer t t t)
-  )
-)
+        (interactive)
+        (save-buffer)
+        (let ((vertico-sort-function nil))  ;; Disable Vertico sorting
+        (let* ((template-type (completing-read "Choose template: "
+                                                '("article (single-run)" "article" "note" "handout")
+                                                nil t nil nil "article (single-run)"))
+                (template-file (cond
+                                ((string-equal template-type "note")
+                                (expand-file-name "~/notes/papers/template-note.tex"))
+                                ((string-equal template-type "handout")
+                                (expand-file-name "~/notes/papers/template-handout.tex"))
+                                (t
+                                (expand-file-name "~/notes/papers/template-article.tex"))))
+                (single-run (not (string-equal template-type "article")))
+                (output-dir (concat (file-name-directory (buffer-file-name))
+                                (file-name-base (buffer-file-name))))
+                (command (format "org2pdf --template %s %s %s%s"
+                                (shell-quote-argument template-file)
+                                (shell-quote-argument (buffer-file-name))
+                                (shell-quote-argument output-dir)
+                                (if single-run " --single-run" ""))))
+        (async-shell-command command)
+        (revert-buffer t t t))))
 
-(defun my-org2handout ()
-  (interactive)
-  (save-buffer)
-  (async-shell-command
-  (format "org2pdf --template ~/notes/papers/.template-handout.tex %s"
-          (shell-quote-argument (buffer-file-name))))
-  (revert-buffer t t t)
-)
-#+end_src
-
-#+begin_src emacs-lisp :tangle yes
 (defun my-org2docx ()
   (interactive)
   (save-buffer)
