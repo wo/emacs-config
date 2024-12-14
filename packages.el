@@ -64,7 +64,7 @@
 ;; (package! math-symbol-lists :disable t)
 ;; (use-package! math-symbol-lists
 ;;   :load-path "~/doom.d/my-math-symbols.el")
-;(package! memoize)
+;; (package! memoize)
 (package! org-contacts)
 ;; (package! org-ref)
 ;;(package! org-roam-bibtex

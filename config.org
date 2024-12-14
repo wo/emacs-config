@@ -70,7 +70,7 @@ keep track of projects and appointments. Most of this happens in org-mode.
       version-control t) ; use versioned backups
 #+end_src
 
-** Spell-checking 
+** Spell-checking
 
 Why is it so hard to set up spell-checking with multiple dictionaries?
 
@@ -353,7 +353,7 @@ relevant symbols:
 #+end_src
 
 Some symbols I often use aren't standardly recognised by org-pretty-entities.
-But we can add them: 
+But we can add them:
 
 #+begin_src emacs-lisp :tangle yes
 (after! org
@@ -370,7 +370,7 @@ But we can add them:
                             ("leadsto" "$\leadsto$" nil "" "" "" "↝")
                             ("llb" "$\\llbracket$" nil "" "" "" "⟦")
                             ("rrb" "$\\rrbracket$" nil "" "" "" "⟧")
-                           )   
+                           )
         )
   )
 #+end_src
@@ -390,7 +390,7 @@ Preview LaTeX environments in org buffers, mostly adapted from [[https://tecosau
   ; make LaTex snippets look better:
   (setq org-highlight-latex-and-related '(native script entities))
   ; automatically preview latex when file is opened:
-  (setq org-startup-latex-with-latex-preview t) 
+  (setq org-startup-latex-with-latex-preview t)
 )
 #+end_src
 
@@ -560,6 +560,7 @@ Basic config:
   (setq org-agenda-skip-scheduled-if-done t
         org-agenda-skip-deadline-if-done t
         org-agenda-include-deadlines t
+        org-agenda-include-diary t  ;; Include diary entries (birthdays)
         org-agenda-block-separator nil
         org-log-repeat nil ; don't log state changes
         ; show clocked items in the agenda:
@@ -574,15 +575,16 @@ Show birthdays:
 
 #+begin_src emacs-lisp :tangle yes
 ;; (use-package! memoize
-;;  :ensure t)
+;;   :ensure t)
 
-(use-package! org-contacts
- :after org
- :after memoize
- :init
- (setq org-contacts-birthday-property "BIRTHDAY")
- (setq org-contacts-files '("~/org/contacts.org"))
- )
+;(use-package! org-contacts
+;  :after org
+;  :init
+;  (setq org-contacts-birthday-property "BIRTHDAY")
+;  (setq org-contacts-files '("~/org/contacts.org"))
+  ;; :config
+  ;; (require 'memoize)  ;; Ensure memoize is loaded explicitly
+;)
 #+end_src
 
 My custom agenda view:
@@ -919,7 +921,7 @@ I sometimes like automatic line breaks when I write prose:
             (replace-match "\\1\n" nil)))))
     (goto-char orig-point)))
 #+end_src
-    
+
 ** Citations
 
 Citation management used to be a mess. Now it's fairly easy with the new
@@ -1014,7 +1016,7 @@ bound to C-c l.)
     (when custom-id
       (org-insert-link nil (concat "#" custom-id) custom-id))))
 #+end_src
-        
+
 ** Add log entries to current org project
 
 This adds a 'Log' section to the bottom of the current org file, and inserts a new entry with today's date.
@@ -1197,7 +1199,7 @@ customising this process is cumbersome. I need a lot of extra preprocessing and 
   ;;       '("citekey" "title" "year" "author-or-editor" "file")
   ;;       orb-process-file-keyword t
   ;;       orb-file-field-extensions '("pdf"))
-  
+
   (setq org-roam-capture-templates
         (list
          '("n" "default note" plain "%?"
@@ -1420,7 +1422,7 @@ I don't want to enter normal mode just to insert a link to another note:
 #+end_src
 
 ** Insert link to heading in edit mode
-                        
+
 #+begin_src emacs-lisp :tangle yes
 (map!
  :desc "link to heading" "C-c l" #'my-insert-custom-id-link
@@ -1566,7 +1568,7 @@ Accept code completion from copilot; fallback to company:
 #+end_src
 
 Prevent copilot warnings in org mode:
-        
+
 #+begin_src emacs-lisp :tangle yes
 (after! copilot
   (add-to-list
@@ -1674,7 +1676,7 @@ Next my Gmail account:
 
 I need to tell doom that this a gmail account so that deleting, archiving, etc.
 works properly:
-                        
+
 #+begin_src emacs-lisp :tangle yes
 (setq +mu4e-gmail-accounts '(("wo@umsu.de" . "/wo@umsu")))
 #+end_src
@@ -1718,4 +1720,3 @@ Improve display of html mails in dark mode (from [[https://www.reddit.com/r/emac
                                         "%Y-%m-%d"
                                         (time-subtract (current-time) (days-to-time 350))))
 #+end_src
-
