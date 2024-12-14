@@ -1530,6 +1530,14 @@ Entry format in bibtex files:
 (setq python-shell-interpreter "python3")
 #+end_src
 
+** HTML
+
+Don't insert template into new html pages:
+
+#+begin_src emacs-lisp :tangle yes
+(set-file-template! "\\.html$" nil)
+#+end_src
+
 ** Javascript
 
 Activate javascript mode for webppl files:
