@@ -66,12 +66,17 @@
 ;;   :load-path "~/doom.d/my-math-symbols.el")
 ;; (package! memoize)
 (package! org-contacts)
+(unpin! org-roam)
 ;; (package! org-ref)
 ;;(package! org-roam-bibtex
 ;;  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
 ;;(unpin! org-roam company-org-roam)
 ;; (package! citar)
 ;; (package! citar-embark)
+
+; temporary hack to make org-roam work 01/25:
+; https://org-roam.discourse.group/t/solved-emasql-error-in-doom-emacs/3680/2
+(package! emacsql :pin "b84102f")
 
 (package! org-wild-notifier)
 
