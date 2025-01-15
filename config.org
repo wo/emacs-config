@@ -885,6 +885,21 @@ Distraction-free prose writing. This comes from the :ui zen module.
  )
 #+end_src
 
+** Tab behaviour
+
+Make TAB insert 4 spaces but do all the smart stuff it does in programming mode.
+
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq-local tab-width 4)
+  (setq indent-line-function 'indent-relative-maybe)
+  (map! :map org-mode-map
+        :i [tab] #'indent-for-tab-command
+        :i "TAB" #'indent-for-tab-command
+        :n [tab] #'indent-for-tab-command
+        :n "TAB" #'indent-for-tab-command))
+#+end_src
+
 ** Automatic line-breaks?
 
 I sometimes like automatic line breaks when I write prose:
