@@ -613,10 +613,10 @@ My custom agenda view:
             (alltodo "" ((org-agenda-overriding-header "")
                          (org-super-agenda-groups
                           '(
-                            (:name "Write" :and(:tag "write" :todo "ACTV"))
-                            (:name "Read" :and(:tag "read" :todo "ACTV"))
-                            (:name "Programming" :and(:tag "prog" :todo "ACTV"))
-                            (:name "Other" :todo "ACTV")
+                            (:name "Write" :and(:tag "write" :todo ("ACTV" "URGT")))
+                            (:name "Read" :and(:tag "read" :todo ("ACTV" "URGT")))
+                            (:name "Programming" :and(:tag "prog" :todo ("ACTV" "URGT")))
+                            (:name "Other" :todo ("ACTV" "URGT"))
                             (:name "Routines" :tag "routine")
                             (:name "Deadlines" :deadline t :order 2)
                             (:name "To Read" :and(:tag "read" :todo "NEXT"))
